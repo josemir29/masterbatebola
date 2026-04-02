@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#ffffff"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="ABV-MS"/>
+<title>ABV-MS · Bate-bola</title>
+<link rel="manifest" href="manifest.json"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px}
+.app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;background:#fff}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid #eee;flex-shrink:0;background:#fff}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-logo{width:34px;height:auto}
+.header-text h1{font-size:16px;font-weight:600;color:#1a1a1a;line-height:1.2}
+.header-text span{font-size:11px;color:#888}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.pill-blue{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+.pill-yellow{background:#fefce8;color:#854d0e;border:1px solid #fde047}
+.pill-gray{background:#f3f4f6;color:#6b7280;border:1px solid #e5e7eb}
+.pill-green{background:#f0fdf4;color:#15803d;border:1px solid #86efac}
+.pill-orange{background:#fff7ed;color:#c2410c;border:1px solid #fdba74}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.tabs{display:flex;gap:6px;padding:10px 16px 0;flex-shrink:0;background:#fff}
+.tab{flex:1;padding:8px 4px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#6b7280;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s}
+.tab.active{background:#1a1a1a;border-color:#1a1a1a;color:#fff}
+.content{flex:1;overflow-y:auto;padding:12px 16px 24px;background:#f9f9f7;-webkit-overflow-scrolling:touch}
+.page{display:none}.page.active{display:block}
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;text-align:center}
+.stat-val{font-size:26px;font-weight:600;color:#1a1a1a;line-height:1}
+.stat-lbl{font-size:11px;color:#9ca3af;margin-top:3px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin-bottom:10px}
+.card-title{font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px}
+.search-wrap{position:relative;margin-bottom:10px}
+.search-wrap input{width:100%;padding:9px 12px 9px 34px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;color:#1a1a1a;font-size:14px;font-family:inherit;outline:none}
+.search-wrap input:focus{border-color:#1a1a1a;background:#fff}
+.search-wrap input::placeholder{color:#9ca3af}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:15px;pointer-events:none}
+.pos-label{font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;padding:8px 0 6px;border-top:1px solid #f3f4f6;margin-top:2px}
+.pos-label:first-child{border-top:none;padding-top:0}
+.assoc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:2px}
+.assoc-btn{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;background:#f9f9f7;border:1px solid #e5e7eb;border-radius:8px;color:#1a1a1a;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .12s}
+.assoc-btn:active{transform:scale(0.97)}
+.assoc-btn.present{background:#f0fdf4;border-color:#86efac;color:#15803d}
+.assoc-btn.in-court-blue{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+.assoc-btn.in-court-yellow{background:#fefce8;border-color:#fde047;color:#854d0e}
+.player-row{display:flex;align-items:center;gap:8px;padding:9px 10px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:6px}
+.player-row.blue{background:#eff6ff;border-color:#93c5fd}
+.player-row.yellow{background:#fefce8;border-color:#fde047}
+.p-num{font-size:13px;font-weight:600;color:#d1d5db;width:20px;text-align:center;flex-shrink:0}
+.p-name{flex:1;font-size:14px;font-weight:500;color:#1a1a1a}
+.p-pos{font-size:10px;color:#9ca3af;flex-shrink:0}
+.p-rm{border:none;background:none;color:#d1d5db;font-size:18px;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0}
+.guest-row{display:flex;gap:8px}
+.guest-row input{flex:1;padding:9px 12px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:8px;color:#1a1a1a;font-size:14px;font-family:inherit;outline:none}
+.guest-row input:focus{border-color:#1a1a1a;background:#fff}
+.guest-row input::placeholder{color:#9ca3af}
+.btn{padding:10px 14px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#1a1a1a;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .12s;width:100%;margin-top:6px}
+.btn:active{transform:scale(0.98)}
+.btn-dark{background:#1a1a1a;border-color:#1a1a1a;color:#fff}
+.btn-blue{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+.btn-yellow-win{background:#ca8a04;border-color:#ca8a04;color:#fff}
+.btn-red{background:#fff;border-color:#fca5a5;color:#dc2626}
+.btn-ext{background:#fff;border-color:#fde047;color:#854d0e}
+.btn-green{background:#15803d;border-color:#15803d;color:#fff}
+.btn-sm{padding:8px 12px;font-size:12px;margin-top:0;width:auto}
+.btn-row{display:flex;gap:6px}.btn-row .btn{flex:1}
+.alert-rule{padding:10px 12px;border-radius:8px;font-size:12px;font-weight:500;margin-bottom:10px;background:#f0fdf4;border:1px solid #86efac;color:#15803d}
+.alert-warn{padding:10px 12px;border-radius:8px;font-size:12px;font-weight:500;margin-bottom:10px;background:#fff7ed;border:1px solid #fdba74;color:#c2410c}
+.teams-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.team-box-blue{background:#eff6ff;border:2px solid #3b82f6;border-radius:10px;padding:10px}
+.team-box-blue .team-name{color:#1d4ed8;font-size:13px;font-weight:700}
+.team-box-yellow{background:#fefce8;border:2px solid #eab308;border-radius:10px;padding:10px}
+.team-box-yellow .team-name{color:#854d0e;font-size:13px;font-weight:700}
+.team-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.team-player{font-size:13px;padding:4px 0;border-bottom:1px solid #f3f4f6}
+.team-player:last-child{border-bottom:none}
+.next-box{background:#f9f9f7;border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-bottom:10px}
+.next-box-title{font-size:10px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:5px}
+.next-names{font-size:13px;color:#1a1a1a}
+.timer-wrap{text-align:center;padding:20px 0 14px}
+.timer-num{font-size:80px;font-weight:700;color:#1a1a1a;line-height:1;letter-spacing:-2px;font-variant-numeric:tabular-nums;transition:color .3s}
+.timer-num.warning{color:#d97706}
+.timer-num.danger{color:#dc2626;animation:blink 1s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+.timer-sub{font-size:12px;color:#9ca3af;margin-top:6px;min-height:18px;font-weight:500}
+.timer-bar-wrap{height:4px;background:#f3f4f6;border-radius:2px;margin:10px 0 14px}
+.timer-bar{height:4px;background:#1a1a1a;border-radius:2px;transition:width 1s linear,background .3s}
+.score-wrap{display:flex;align-items:center;justify-content:space-around;padding:8px 0 4px}
+.score-side{display:flex;flex-direction:column;align-items:center;gap:8px}
+.score-label-blue{font-size:12px;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:0.06em}
+.score-label-yellow{font-size:12px;font-weight:700;color:#854d0e;text-transform:uppercase;letter-spacing:0.06em}
+.score-num{font-size:64px;font-weight:700;color:#1a1a1a;line-height:1;font-variant-numeric:tabular-nums}
+.score-controls{display:flex;gap:6px}
+.score-controls button{padding:6px 10px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;color:#1a1a1a;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.score-controls button:active{background:#e5e7eb}
+.score-vs{font-size:20px;font-weight:400;color:#d1d5db}
+.hist-row{padding:10px 0;border-bottom:1px solid #f3f4f6}
+.hist-row:last-child{border-bottom:none}
+.hist-top{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.hist-game{font-size:13px;font-weight:600;color:#1a1a1a}
+.hist-time{font-size:11px;color:#9ca3af}
+.hist-teams{font-size:12px;color:#6b7280;line-height:1.6}
+.hist-result{font-size:13px;font-weight:500;color:#1a1a1a;margin-top:2px}
+.rank-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f9f9f7;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:6px}
+.rank-pos{font-size:14px;font-weight:700;color:#d1d5db;width:22px;text-align:center}
+.rank-name{flex:1;font-size:14px;font-weight:500}
+.rank-wins{font-size:13px;font-weight:600;color:#15803d}
+.rank-games{font-size:11px;color:#9ca3af}
+.empty-state{text-align:center;padding:20px 16px;color:#9ca3af;font-size:13px}
+.sound-btn{width:32px;height:32px;border-radius:50%;border:1px solid #e5e7eb;background:#f9f9f7;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.foto-upload-area{border:2px dashed #e5e7eb;border-radius:12px;padding:24px;text-align:center;cursor:pointer;background:#f9f9f7;transition:all .15s;margin-bottom:10px}
+.foto-upload-area .icon{font-size:32px;margin-bottom:8px}
+.foto-upload-area .lbl{font-size:13px;color:#6b7280;font-weight:500}
+.foto-upload-area .sublbl{font-size:11px;color:#9ca3af;margin-top:4px}
+.foto-preview{width:100%;border-radius:10px;display:block;margin-bottom:10px;max-height:280px;object-fit:cover}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.overlay-box{background:#fff;border-radius:16px;padding:28px 36px;text-align:center;min-width:220px}
+.overlay-box .ov-icon{font-size:32px;margin-bottom:10px}
+.overlay-box p{font-size:14px;color:#6b7280;margin-top:4px}
+.sumula-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:300;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:16px 16px 32px}
+.sumula-overlay.show{display:flex}
+.sumula-overlay img{max-width:100%;border-radius:12px;display:block}
+.sumula-overlay .instrucao{color:#fff;font-size:13px;text-align:center;margin:14px 0 10px;background:rgba(255,255,255,0.1);padding:10px 16px;border-radius:8px;line-height:1.7;width:100%}
+.sumula-overlay .instrucao strong{color:#fde047}
+.sumula-overlay .btn-fechar{margin-top:14px;padding:12px 40px;background:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;color:#1a1a1a;font-family:inherit}
+.snap-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-left:6px}
+.snap-17{background:#fff7ed;color:#c2410c;border:1px solid #fdba74}
+.snap-16{background:#f3f4f6;color:#6b7280;border:1px solid #e5e7eb}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:2px}
+/* ══════════════════════════════════════════
+   iPad / TV — tudo dentro do @media, NADA vaza para mobile
+   ══════════════════════════════════════════ */
+@media(min-width:768px){
+  body{background:#f0f0ee}
+  .app{max-width:100%;flex-direction:column;background:transparent}
+  .header{background:#fff;border-radius:0;border-bottom:1px solid #e5e7eb;padding:14px 24px 12px}
+  .tabs{display:none}
+  .content{padding:0;overflow:visible;background:transparent;flex:1;display:flex;flex-direction:column;min-height:0}
+
+  /* Páginas — ocultas por padrão, mostradas via .ipad-visible */
+  .page{display:none}
+  .page.ipad-visible{display:block!important}
+
+  /* Grid: Presença | Placar+Timer | Quadra+Súmula */
+  .ipad-grid{
+    display:grid;
+    grid-template-columns:280px 1fr 360px;
+    gap:10px;
+    padding:10px 14px 14px;
+    flex:1;
+    min-height:0;
+  }
+  .ipad-col{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    overflow-y:auto;
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    min-height:0;
+  }
+  .ipad-col-title{
+    font-size:10px;font-weight:600;color:#9ca3af;
+    text-transform:uppercase;letter-spacing:0.08em;
+    padding-bottom:8px;border-bottom:1px solid #f3f4f6;
+    flex-shrink:0;
+  }
+  .ipad-col .card{margin-bottom:0;flex-shrink:0}
+  .ipad-col .stats-bar{margin-bottom:0;flex-shrink:0}
+
+  /* ── Placar lado a lado ── */
+  .ipad-placar-row{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    gap:8px;
+    align-items:stretch;
+    flex-shrink:0;
+  }
+  .ipad-placar-blue{
+    background:#1d4ed8;border-radius:12px;
+    padding:12px 10px;text-align:center;
+  }
+  .ipad-placar-blue .ipad-score-label{color:#bfdbfe;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+  .ipad-placar-blue .ipad-score-num{color:#ffffff;font-size:80px;font-weight:700;line-height:1;display:block;font-variant-numeric:tabular-nums}
+  .ipad-placar-blue .ipad-score-controls{display:flex;gap:5px;justify-content:center;margin-top:8px}
+  .ipad-placar-blue .ipad-score-controls button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:7px;color:#fff;font-size:13px;font-weight:700;padding:6px 10px;cursor:pointer;font-family:inherit}
+  .ipad-placar-yellow{
+    background:#ca8a04;border-radius:12px;
+    padding:12px 10px;text-align:center;
+  }
+  .ipad-placar-yellow .ipad-score-label{color:#fef08a;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+  .ipad-placar-yellow .ipad-score-num{color:#ffffff;font-size:80px;font-weight:700;line-height:1;display:block;font-variant-numeric:tabular-nums}
+  .ipad-placar-yellow .ipad-score-controls{display:flex;gap:5px;justify-content:center;margin-top:8px}
+  .ipad-placar-yellow .ipad-score-controls button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:7px;color:#fff;font-size:13px;font-weight:700;padding:6px 10px;cursor:pointer;font-family:inherit}
+  .ipad-vs{display:flex;align-items:center;justify-content:center;font-size:24px;color:#d1d5db;font-weight:300;width:24px}
+
+  /* ── Cronômetro hero: número grande ── */
+  .ipad-timer-hero{
+    background:#1a1a1a;border-radius:14px;
+    padding:14px 16px 14px;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    flex-shrink:0;
+  }
+  .ipad-timer-label{font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.12em}
+  .ipad-timer-big{
+    font-size:140px;font-weight:700;color:#ffffff;
+    letter-spacing:-6px;font-variant-numeric:tabular-nums;
+    line-height:0.9;text-align:center;transition:color .3s;
+  }
+  .ipad-timer-big.warn{color:#eab308}
+  .ipad-timer-big.danger{color:#ef4444;animation:timerpulse 1s ease-in-out infinite}
+  @keyframes timerpulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .ipad-timer-status{font-size:11px;color:#666;font-weight:500;text-align:center;min-height:16px}
+  .ipad-timer-status.warn{color:#eab308}
+  .ipad-timer-status.danger{color:#ef4444}
+  .ipad-timer-btns{display:flex;gap:8px;width:100%}
+  .ipad-timer-btns button{
+    flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:700;
+    cursor:pointer;font-family:inherit;border:none;
+  }
+  .ipad-timer-btns button:active{transform:scale(0.96)}
+  .ipad-btn-start{background:#ffffff;color:#1a1a1a}
+  .ipad-btn-pause{background:#2a2a2a;color:#777;border:1px solid #333!important}
+  .ipad-btn-reset{background:#2a2a2a;color:#555;border:1px solid #333!important}
+
+  /* Ocultar card original do placar no iPad (usamos os blocos coloridos acima) */
+  #page-placar{display:none!important}
+
+  /* Súmula inline na coluna direita */
+  .ipad-sumula-wrap{flex-shrink:0}
+  .ipad-sumula-wrap .card{margin-bottom:0}
+}
+
+@media(min-width:768px) and (orientation:landscape){
+  .ipad-grid{
+    grid-template-columns:260px 1fr 340px;
+    padding:8px 12px 12px;
+    gap:8px;
+  }
+  .ipad-placar-blue .ipad-score-num,
+  .ipad-placar-yellow .ipad-score-num{font-size:96px}
+  .ipad-timer-big{font-size:160px}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// ── Auth Guard ────────────────────────────────────────
+const _SB_URL = 'https://cfcdwyxciflddccdxokw.supabase.co'
+const _SB_KEY = 'sb_publishable_FSx4e9Os478sCRS7x2SCFA_dzqS1WUe'
+const { createClient } = supabase
+const _sb = createClient(_SB_URL, _SB_KEY)
+
+// Bloquear renderização até confirmar sessão
+document.documentElement.style.visibility = 'hidden'
+
+_sb.auth.getSession().then(async ({ data }) => {
+  if (!data.session) {
+    window.location.href = 'auth.html'
+    return
+  }
+  // Carregar dados do grupo
+  const { data: grupos } = await _sb.from('grupos').select('*').limit(1)
+  if (!grupos || grupos.length === 0) {
+    window.location.href = 'onboarding.html'
+    return
+  }
+  // Injetar dados do grupo no app
+  window._grupo = grupos[0]
+  document.documentElement.style.visibility = 'visible'
+})
+</script>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-left">
+      <img class="header-logo" id="header-logo" alt="ABV-MS"/>
+      <div class="header-text">
+        <h1>ABV-MS · Bate-bola</h1>
+        <span id="game-date"></span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="sound-btn" id="sound-btn" onclick="toggleSound()">🔔</button>
+      <button class="sound-btn" onclick="fazerLogout()" title="Sair" style="font-size:14px">⏏</button>
+      <span class="pill pill-gray" id="mode-pill"><span class="dot"></span>&nbsp;0 presentes</span>
+    </div>
+  </div>
+
+  <div class="tabs" id="main-tabs">
+    <button class="tab active" onclick="switchTab('lista')">Presença</button>
+    <button class="tab" onclick="switchTab('quadra')">Quadra</button>
+    <button class="tab" onclick="switchTab('placar')">Placar</button>
+    <button class="tab" onclick="switchTab('hist')">Súmula</button>
+  </div>
+  <!-- Aba extra só no iPad: acesso à Súmula fora do dashboard -->
+  <div id="ipad-tab-bar" style="display:none;padding:8px 16px 0;background:#fff;gap:8px;justify-content:flex-end">
+    <button id="ipad-tab-sumula" class="tab" onclick="toggleIPadSumula()" style="flex:0;padding:8px 16px">📄 Súmula</button>
+    <button id="ipad-tab-back" class="tab" onclick="closeIPadSumula()" style="display:none;flex:0;padding:8px 16px">✕ Fechar Súmula</button>
+  </div>
+
+  <div class="content">
+
+    <!-- PRESENÇA -->
+    <div id="page-lista" class="page active">
+      <div class="stats-bar">
+        <div class="stat-card"><div class="stat-val" id="cnt-total">0</div><div class="stat-lbl">Presentes</div></div>
+        <div class="stat-card"><div class="stat-val" id="cnt-waiting">0</div><div class="stat-lbl">Na fila</div></div>
+        <div class="stat-card"><div class="stat-val" id="cnt-played">0</div><div class="stat-lbl">Jogaram</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Marcar presença</div>
+        <div class="search-wrap"><span class="search-icon">🔍</span><input id="search-input" type="text" placeholder="Buscar associado..." oninput="renderAssocList()"/></div>
+        <div id="assoc-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Adicionar convidado</div>
+        <div class="guest-row">
+          <input id="new-name" type="text" placeholder="Nome do convidado..." maxlength="20"/>
+          <button class="btn btn-dark btn-sm" onclick="addGuest()">+ Add</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Lista de chegada</div>
+        <div id="player-list"></div>
+        <div id="empty-list" class="empty-state">Nenhum jogador marcado ainda</div>
+        <button class="btn btn-red" style="margin-top:10px" onclick="resetAll()">Resetar sessão</button>
+      </div>
+    </div>
+
+    <!-- QUADRA -->
+    <div id="page-quadra" class="page">
+      <div id="regra-info" class="alert-rule" style="display:none"></div>
+      <div id="snapshot-info" style="display:none;margin-bottom:8px"></div>
+      <div class="card">
+        <div class="card-title">Partida atual</div>
+        <div id="no-game" class="empty-state">Marque pelo menos 10 jogadores na aba Presença</div>
+        <div id="teams-view" style="display:none">
+          <div class="teams-grid">
+            <div class="team-box-blue">
+              <div class="team-head"><span class="team-name">🔵 Azul</span><span id="wins-blue"></span></div>
+              <div id="team-blue-players"></div>
+            </div>
+            <div class="team-box-yellow">
+              <div class="team-head"><span class="team-name">🟡 Amarelo</span><span id="wins-yellow"></span></div>
+              <div id="team-yellow-players"></div>
+            </div>
+          </div>
+          <div id="next-preview"></div>
+          <div class="btn-row">
+            <button class="btn btn-blue" onclick="declareWinner('blue')">🔵 Azul venceu</button>
+            <button class="btn btn-yellow-win" onclick="declareWinner('yellow')">🟡 Amarelo venceu</button>
+          </div>
+          <button class="btn btn-ext" id="btn-draw" onclick="declareWinner('draw')" style="display:none">Empate → +2 min</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Lista de espera</div>
+        <div id="waiting-list"><div class="empty-state">Nenhum na espera</div></div>
+      </div>
+    </div>
+
+    <!-- PLACAR -->
+    <div id="page-placar" class="page">
+      <div class="card">
+        <div class="card-title">Cronômetro · <span id="timer-duration-label">10 min</span></div>
+        <div class="timer-wrap">
+          <div class="timer-num" id="timer-display">10:00</div>
+          <div class="timer-sub" id="timer-status">Pronto para iniciar</div>
+        </div>
+        <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
+        <div class="btn-row">
+          <button class="btn btn-dark" id="btn-start" onclick="startTimer()">▶ Iniciar</button>
+          <button class="btn" id="btn-pause" onclick="pauseTimer()" disabled>⏸ Pausar</button>
+          <button class="btn btn-red" onclick="resetTimer()">↺ Reset</button>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:#9ca3af;line-height:1.7;padding:10px 12px;background:#f9f9f7;border-radius:8px;border:1px solid #f3f4f6">
+          <strong style="color:#6b7280">Sons:</strong> 3 bipes nos 2 min finais · apito longo no fim · 2 bipes no empate<br>
+          <strong style="color:#6b7280">Snapshot 5 min:</strong> ao marcar/desmarcar presença antes dos 5 min, a regra da partida é atualizada automaticamente
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Placar</div>
+        <div class="score-wrap">
+          <div class="score-side">
+            <div class="score-label-blue">🔵 Azul</div>
+            <div class="score-num" id="score-blue">0</div>
+            <div class="score-controls">
+              <button onclick="changeScore('blue',2)">+2</button>
+              <button onclick="changeScore('blue',3)">+3</button>
+              <button onclick="changeScore('blue',-1)">−</button>
+            </div>
+          </div>
+          <span class="score-vs">×</span>
+          <div class="score-side">
+            <div class="score-label-yellow">🟡 Amarelo</div>
+            <div class="score-num" id="score-yellow">0</div>
+            <div class="score-controls">
+              <button onclick="changeScore('yellow',2)">+2</button>
+              <button onclick="changeScore('yellow',3)">+3</button>
+              <button onclick="changeScore('yellow',-1)">−</button>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-red" onclick="resetScore()" style="margin-top:8px">Zerar placar</button>
+      </div>
+    </div>
+
+    <!-- SÚMULA -->
+    <div id="page-hist" class="page">
+      <div class="card">
+        <div class="card-title">Foto do dia</div>
+        <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="onFotoSelected(event)"/>
+        <div id="foto-upload-area" class="foto-upload-area" onclick="document.getElementById('foto-input').click()">
+          <div class="icon">📷</div>
+          <div class="lbl">Toque para adicionar a foto do bate-bola</div>
+          <div class="sublbl">Câmera ou fototeca</div>
+        </div>
+        <img id="foto-preview" class="foto-preview" style="display:none"/>
+        <button id="foto-remove-btn" class="btn btn-red" style="display:none;margin-top:0" onclick="removeFoto()">Remover foto</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Partidas da sessão</div>
+        <div id="history-list"><div class="empty-state">Nenhuma partida finalizada</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Ranking da sessão</div>
+        <div id="stats-list"><div class="empty-state">Nenhum dado ainda</div></div>
+      </div>
+      <button class="btn btn-green" onclick="gerarSumula()">📄 Gerar Súmula PNG</button>
+      <p style="font-size:11px;color:#9ca3af;text-align:center;margin-top:8px;padding-bottom:4px">Pressione e segure a imagem para salvar no celular</p>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-box"><div class="ov-icon">⏳</div><p>Gerando súmula...</p></div>
+</div>
+<div class="sumula-overlay" id="sumula-overlay">
+  <div class="instrucao">
+    <strong>iOS:</strong> pressione e segure a imagem → "Salvar no Fotos"<br>
+    <strong>Android:</strong> pressione e segure → "Baixar imagem"
+  </div>
+  <img id="sumula-img" src="" alt="Súmula ABV-MS"/>
+  <button class="btn-fechar" onclick="fecharSumula()">✕ Fechar</button>
+</div>
+<canvas id="sumula-canvas" style="display:none"></canvas>
+
+<script>
+
+// ─── LOGO ────────────────────────────────────────────────
+const LOGO_B64 = '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';
+const LOGO_IMG = new Image();
+LOGO_IMG.src = 'data:image/png;base64,' + LOGO_B64;
+document.getElementById('header-logo').src = LOGO_IMG.src;
+
+// ─── ÁUDIO ───────────────────────────────────────────────
+let audioCtx=null, soundOn=true;
+function getAC(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function beep(freq,dur,type,vol,delay){if(!soundOn)return;try{const c=getAC();const o=c.createOscillator();const g=c.createGain();o.connect(g);g.connect(c.destination);o.type=type;o.frequency.setValueAtTime(freq,c.currentTime+delay);g.gain.setValueAtTime(0,c.currentTime+delay);g.gain.linearRampToValueAtTime(vol,c.currentTime+delay+0.01);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+delay+dur);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur+0.05);}catch(e){}}
+function sndWarning(){beep(880,.1,'square',.25,0);beep(880,.1,'square',.25,.2);beep(1100,.15,'square',.3,.4);}
+function sndEnd(){beep(660,.05,'sawtooth',.35,0);beep(660,.05,'sawtooth',.35,.07);beep(880,.5,'sawtooth',.4,.15);}
+function sndDraw(){beep(550,.15,'triangle',.3,0);beep(550,.15,'triangle',.3,.25);}
+function sndWin(){beep(660,.08,'square',.2,0);beep(880,.08,'square',.25,.1);beep(1100,.18,'square',.3,.22);}
+function sndClick(){beep(440,.06,'sine',.12,0);}
+function toggleSound(){soundOn=!soundOn;document.getElementById('sound-btn').textContent=soundOn?'🔔':'🔕';}
+
+// ─── DADOS ───────────────────────────────────────────────
+// Roster atualizado — cadastro oficial ABV-MS mar/2026
+// Idade calculada dinamicamente a cada sessão
+const ROSTER_DATA=[
+  {name:'Fidel',    pos:'Armador',    dob:'02/05/1950'},
+  {name:'Sagui',    pos:'Armador',    dob:'04/08/1967'},
+  {name:'Abóbora',  pos:'Armador',    dob:'29/11/1968'},
+  {name:'China',    pos:'Armador',    dob:'30/10/1980'},
+  {name:'Piu-Piu',  pos:'Armador',    dob:'02/08/1991'},
+  {name:'Kichute',  pos:'Ala-Armador',dob:'04/10/1962'},
+  {name:'Totó',     pos:'Ala-Armador',dob:'12/06/1967'},
+  {name:'Kone',     pos:'Ala-Armador',dob:'12/09/1969'},
+  {name:'Alicate',  pos:'Ala-Armador',dob:'26/01/1970'},
+  {name:'Consul',   pos:'Ala-Armador',dob:'28/05/1972'},
+  {name:'Índio',    pos:'Ala-Armador',dob:'05/02/1987'},
+  {name:'Joelhinho',pos:'Ala-Armador',dob:'29/03/1992'},
+  {name:'Repolho',  pos:'Ala',        dob:'13/09/1963'},
+  {name:'Panqueca', pos:'Ala',        dob:'03/03/1972'},
+  {name:'Cutia',    pos:'Ala',        dob:'25/02/1976'},
+  {name:'Nerd',     pos:'Ala',        dob:'04/06/1976'},
+  {name:'Botox',    pos:'Ala',        dob:'27/02/1978'},
+  {name:'Lafon',    pos:'Ala',        dob:'29/07/1980'},
+  {name:'Moringa',  pos:'Ala',        dob:'30/10/1980'},
+  {name:'Panda',    pos:'Ala',        dob:'01/07/1982'},
+  {name:'Cindy',    pos:'Ala',        dob:'13/11/1983'},
+  {name:'Pirulito', pos:'Ala',        dob:'03/03/1990'},
+  {name:'Tiozão',   pos:'Ala',        dob:null},
+  {name:'Bereco',   pos:'Ala-Pivô',   dob:'15/04/1957'},
+  {name:'Bozo',     pos:'Ala-Pivô',   dob:'20/07/1966'},
+  {name:'Babi',     pos:'Ala-Pivô',   dob:'31/12/1966'},
+  {name:'PlayMobil',pos:'Ala-Pivô',   dob:'07/01/1969'},
+  {name:'iPod',     pos:'Ala-Pivô',   dob:'19/10/1970'},
+  {name:'Nhonho',   pos:'Ala-Pivô',   dob:'05/03/1974'},
+  {name:'Ganso',    pos:'Ala-Pivô',   dob:'29/07/1975'},
+  {name:'Chanel',   pos:'Ala-Pivô',   dob:'29/07/1978'},
+  {name:'Vareta',   pos:'Pivô',       dob:'08/02/1961'},
+  {name:'Prozac',   pos:'Pivô',       dob:'12/09/1966'},
+  {name:'Miúdo',    pos:'Pivô',       dob:'13/07/1980'},
+  {name:'Félix',    pos:'Pivô',       dob:'19/01/1990'},
+  {name:'Salsicha', pos:'Pivô',       dob:'14/09/1991'},
+];
+function calcAge(dob){
+  if(!dob)return null;
+  try{const p=dob.split('/');const d=new Date(+p[2],+p[1]-1,+p[0]);const t=new Date();
+  let a=t.getFullYear()-d.getFullYear();
+  if(t.getMonth()<d.getMonth()||(t.getMonth()===d.getMonth()&&t.getDate()<d.getDate()))a--;
+  return a;}catch(e){return null;}
+}
+const ROSTER=ROSTER_DATA.map(r=>({...r,age:calcAge(r.dob)}));
+const POS_ORDER=['Armador','Ala-Armador','Ala','Ala-Pivô','Pivô'];
+
+/*
+  ESTADO
+  ──────
+  players        : presentes na sessão
+  teamBlue       : ids em quadra azul
+  teamYellow     : ids em quadra amarelo
+  waitList       : fila de espera (ids ordenados)
+
+  gameInProgress : bool — partida em andamento (cronômetro rodando ou iniciado)
+  snapshotDone   : bool — snapshot dos 5 min já foi tirado para a partida atual
+  snapshotIs17   : bool — resultado do snapshot (true = 17+)
+  timerSecs      : segundos restantes
+  timerDuration  : duração total da partida (600s padrão)
+
+  // controle de ciclo por time
+  // "veterano" = time que está na sua 2ª partida consecutiva
+  veteranTeam    : 'blue' | 'yellow' | null — qual time é veterano (2ª partida)
+  // se null, ambos são novos
+
+  isNewGameContext: bool — indica que os dois times são novos (permite empate+2min)
+*/
+const S = {
+  players:[], teamBlue:[], teamYellow:[], waitList:[],
+  allPresent:[],           // acumula TODOS que passaram pelo bate-bola, nunca remove
+  blueWinsStreak:0, yellowWinsStreak:0,
+  gameCount:0,
+  veteranTeam: null,       // time na 2ª partida consecutiva
+  isNewGameContext: true,  // dois times novos em quadra → permite +2min no empate
+  history:[], stats:{},
+  scoreBlue:0, scoreYellow:0,
+  timer:null, timerSecs:600, timerDuration:600, timerRunning:false, warnedAt2:false,
+  fotoDataUrl:null
+};
+let guestId=1000;
+
+// ─── HELPERS ─────────────────────────────────────────────
+function byId(id){return S.players.find(p=>p.id===id);}
+function isPresentByName(n){return S.players.some(p=>p.name===n);}
+function totalPresent(){return S.players.length;}
+function courtCount(){return S.teamBlue.length + S.teamYellow.length;}
+
+// Regra 17+: verificada ao vivo no momento da declaração do vencedor
+function checkSnapshot(){
+  return totalPresent() >= (window._limiarSaidaDupla || 17);
+}
+function tryFixSnapshot(){} // não mais necessário
+
+// ─── INIT ─────────────────────────────────────────────────
+document.getElementById('game-date').textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'});
+document.getElementById('new-name').addEventListener('keydown',e=>{if(e.key==='Enter')addGuest();});
+
+// ─── NAV ──────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',['lista','quadra','placar','hist'][i]===name);});
+  document.querySelectorAll('.page').forEach(p=>{p.classList.toggle('active',p.id==='page-'+name);});
+  if(name==='quadra')renderCourt();
+  if(name==='hist')renderHistory();
+}
+
+// ─── PRESENÇA ────────────────────────────────────────────
+function togglePresence(name,pos){
+  sndClick();
+  if(isPresentByName(name)){
+    const p=S.players.find(x=>x.name===name); if(!p)return;
+    // Se está em quadra, trata saída durante partida
+    if(S.teamBlue.includes(p.id)||S.teamYellow.includes(p.id)){
+      _removeFromCourt(p.id);
+    } else {
+      S.waitList=S.waitList.filter(i=>i!==p.id);
+    }
+    S.players=S.players.filter(x=>x.id!==p.id);
+  } else {
+    const id=Date.now()+Math.random();
+    const rEntry=ROSTER.find(r=>r.name===name);
+    const age=rEntry?rEntry.age:null;
+    const newP={id,name,pos,age,isGuest:false,gamesPlayed:0,wins:0};
+    S.players.push(newP);
+    S.waitList.push(id);
+    // Acumula em allPresent (nunca remove — para a súmula)
+    if(!S.allPresent.find(p=>p.name===name))S.allPresent.push(newP);
+    if(!S.stats[name])S.stats[name]={wins:0,games:0};
+    tryFormTeams();
+  }
+  updateStats(); renderAssocList(); renderPlayerList(); renderCourt();
+}
+
+function addGuest(){
+  const inp=document.getElementById('new-name'); const name=inp.value.trim(); if(!name)return; sndClick();
+  guestId++;
+  const gPlayer={id:guestId,name:name+' (conv.)',pos:'Convidado',age:null,isGuest:true,gamesPlayed:0,wins:0};
+  S.players.push(gPlayer);
+  S.waitList.push(guestId);
+  S.allPresent.push(gPlayer);
+  if(!S.stats[name+' (conv.)'])S.stats[name+' (conv.)']={wins:0,games:0};
+  inp.value=''; tryFormTeams(); updateStats(); renderAssocList(); renderPlayerList(); renderCourt();
+}
+
+// Remove jogador que foi embora durante a partida
+// → sempre tenta completar o time com 5 pegando da waitList
+// → nunca duplica: remove do estado antes de buscar substituto
+function _removeFromCourt(id){
+  const inBlue  = S.teamBlue.includes(id);
+  const inYellow = S.teamYellow.includes(id);
+
+  if(inBlue){
+    S.teamBlue = S.teamBlue.filter(i=>i!==id);
+    // Completa até 5 pegando da waitList
+    while(S.teamBlue.length < 5 && S.waitList.length > 0){
+      const next = S.waitList.shift();
+      S.teamBlue.push(next);
+    }
+  } else if(inYellow){
+    S.teamYellow = S.teamYellow.filter(i=>i!==id);
+    while(S.teamYellow.length < 5 && S.waitList.length > 0){
+      const next = S.waitList.shift();
+      S.teamYellow.push(next);
+    }
+  }
+
+  // Se ficou com menos de 5 em algum time e não tem mais ninguém na lista
+  const blueShort  = S.teamBlue.length  > 0 && S.teamBlue.length  < 5;
+  const yellowShort = S.teamYellow.length > 0 && S.teamYellow.length < 5;
+  if((blueShort || yellowShort) && S.waitList.length === 0){
+    document.getElementById('regra-info').textContent = '⚠ Time incompleto — aguardando mais jogadores ou encerrar bate-bola';
+    document.getElementById('regra-info').className = 'alert-warn';
+    document.getElementById('regra-info').style.display = 'block';
+  }
+
+  // Sem gente suficiente para continuar (menos de 10 no total em quadra)
+  if(S.teamBlue.length + S.teamYellow.length < 10 && S.waitList.length === 0){
+    document.getElementById('regra-info').textContent = '⚠ Menos de 10 jogadores disponíveis — bate-bola encerrado!';
+    document.getElementById('regra-info').className = 'alert-warn';
+    document.getElementById('regra-info').style.display = 'block';
+    pauseTimer();
+  }
+}
+
+function removePresent(id){
+  const p=byId(id); if(!p)return;
+  if(S.teamBlue.includes(id)||S.teamYellow.includes(id)){
+    _removeFromCourt(id);
+  } else {
+    S.waitList=S.waitList.filter(i=>i!==id);
+  }
+  S.players=S.players.filter(x=>x.id!==id);
+  updateStats(); renderAssocList(); renderPlayerList(); renderCourt();
+}
+
+function tryFormTeams(){
+  if(S.teamBlue.length>0||S.teamYellow.length>0)return;
+  if(S.waitList.length<10)return;
+  S.teamBlue=S.waitList.splice(0,5);
+  S.teamYellow=S.waitList.splice(0,5);
+  S.veteranTeam=null;
+  S.isNewGameContext=true;
+  S.snapshotDone=false; S.snapshotIs17=false;
+  S.blueWinsStreak=0; S.yellowWinsStreak=0;
+  resetScore(); resetTimer();
+}
+
+function updateStats(){
+  const t=totalPresent();
+  document.getElementById('cnt-total').textContent=t;
+  document.getElementById('cnt-waiting').textContent=S.waitList.length;
+  document.getElementById('cnt-played').textContent=S.players.filter(p=>p.gamesPlayed>0).length;
+  const pill=document.getElementById('mode-pill');
+  pill.innerHTML='<span class="dot"></span>&nbsp;'+t+' presentes';
+  pill.className='pill '+(t>=17?'pill-orange':'pill-blue');
+}
+
+function renderAssocList(){
+  const search=document.getElementById('search-input').value.toLowerCase();
+  const el=document.getElementById('assoc-list'); const groups={};
+  ROSTER.forEach(r=>{if(search&&!r.name.toLowerCase().includes(search))return;if(!groups[r.pos])groups[r.pos]=[];groups[r.pos].push(r);});
+  let html='';
+  POS_ORDER.forEach(pos=>{
+    if(!groups[pos]||!groups[pos].length)return;
+    html+='<div class="pos-label">'+pos+'</div><div class="assoc-grid">';
+    groups[pos].forEach(r=>{
+      const p=S.players.find(x=>x.name===r.name); let cls='assoc-btn',icon='';
+      if(p){if(S.teamBlue.includes(p.id)){cls='assoc-btn in-court-blue';icon='🔵';}else if(S.teamYellow.includes(p.id)){cls='assoc-btn in-court-yellow';icon='🟡';}else{cls='assoc-btn present';icon='✓';}}
+      const ageL=r.age?'<span style="font-size:10px;opacity:0.65;margin-left:3px">'+r.age+'a</span>':'';
+      html+='<button class="'+cls+'" onclick="togglePresence(\''+r.name+'\',\''+r.pos+'\')"><span>'+r.name+ageL+'</span><span style="font-size:12px">'+icon+'</span></button>';
+    });
+    html+='</div>';
+  });
+  if(!html)html='<div class="empty-state">Nenhum resultado</div>';
+  el.innerHTML=html;
+}
+
+function renderPlayerList(){
+  const list=document.getElementById('player-list'); const empty=document.getElementById('empty-list');
+  empty.style.display=S.players.length===0?'block':'none'; list.innerHTML='';
+  S.players.forEach((p,i)=>{
+    const isB=S.teamBlue.includes(p.id),isY=S.teamYellow.includes(p.id),wPos=S.waitList.indexOf(p.id);
+    const row=document.createElement('div'); row.className='player-row '+(isB?'blue':isY?'yellow':'');
+    let badge='';
+    if(isB)badge='<span class="pill pill-blue" style="font-size:10px;padding:2px 7px">🔵 Azul</span>';
+    else if(isY)badge='<span class="pill pill-yellow" style="font-size:10px;padding:2px 7px">🟡 Amarelo</span>';
+    else if(wPos>=0)badge='<span class="pill pill-gray" style="font-size:10px;padding:2px 7px">Espera #'+(wPos+1)+'</span>';
+    const ageTag=p.age?'<span style="font-size:10px;color:#9ca3af;margin-left:4px">'+p.age+'a</span>':'';
+    row.innerHTML='<span class="p-num">'+(i+1)+'</span><span class="p-name">'+p.name+ageTag+'</span><span class="p-pos">'+p.pos+'</span>'+badge+'<button class="p-rm" onclick="removePresent('+JSON.stringify(p.id)+')">×</button>';
+    list.appendChild(row);
+  });
+  updateStats();
+}
+
+// ─── QUADRA ───────────────────────────────────────────────
+function renderCourt(){
+  const noGame=document.getElementById('no-game'),tv=document.getElementById('teams-view');
+  const ri=document.getElementById('regra-info'),si=document.getElementById('snapshot-info');
+  const db=document.getElementById('btn-draw');
+
+  if(!S.teamBlue.length&&!S.teamYellow.length){
+    noGame.style.display='block';
+    noGame.textContent='Aguardando '+(10-Math.min(S.waitList.length,10))+' jogador(es) para iniciar ('+S.waitList.length+'/10)';
+    tv.style.display='none'; ri.style.display='none'; si.style.display='none';
+    document.getElementById('waiting-list').innerHTML='<div class="empty-state">Nenhum na espera</div>';
+    return;
+  }
+
+  noGame.style.display='none'; tv.style.display='block';
+
+  // Regra info
+  const snap=checkSnapshot();
+  ri.className='alert-rule'; ri.style.display='block';
+
+  if(S.isNewGameContext){
+    ri.textContent='Duas equipes novas em quadra — empate aciona +2 min';
+  } else if(S.veteranTeam){
+    const vName=S.veteranTeam==='blue'?'🔵 Azul':'🟡 Amarelo';
+    if(snap){
+      ri.textContent=vName+' está na 2ª partida com 17+ presentes — precisa vencer para acionar saída dupla';
+    } else {
+      ri.textContent=vName+' está na 2ª partida — sairá ao final independente do resultado';
+    }
+  } else {
+    ri.textContent='1ª partida do ciclo — vencedor fica, perdedor vai pro final da fila';
+  }
+
+  // Indicador ao vivo do total de presentes
+  const t2=totalPresent();
+  si.style.display='block';
+  si.innerHTML='<span class="snap-badge '+(t2>=17?'snap-17':'snap-16')+'">'+(t2>=17?'⚡ 17+ presentes — regra ativa':'👥 '+t2+' presentes')+'</span>';
+
+  // Botão empate: só quando contexto de dois times novos
+  db.style.display=S.isNewGameContext?'block':'none';
+
+  // Streaks
+  const wB=document.getElementById('wins-blue'),wY=document.getElementById('wins-yellow');
+  wB.innerHTML=S.blueWinsStreak>0?'<span class="pill pill-green" style="font-size:10px;padding:2px 7px">'+S.blueWinsStreak+'V</span>':'';
+  wY.innerHTML=S.yellowWinsStreak>0?'<span class="pill pill-green" style="font-size:10px;padding:2px 7px">'+S.yellowWinsStreak+'V</span>':'';
+
+  const playerLine=p=>p?'<div class="team-player">'+p.name+(p.age?'<span style="font-size:11px;color:#9ca3af;margin-left:5px">'+p.age+'a</span>':'')+'</div>':'';
+  document.getElementById('team-blue-players').innerHTML=S.teamBlue.map(id=>playerLine(byId(id))).join('');
+  document.getElementById('team-yellow-players').innerHTML=S.teamYellow.map(id=>playerLine(byId(id))).join('');
+
+  // Próximo time
+  const ne=document.getElementById('next-preview');
+  if(!S.waitList.length){
+    ne.innerHTML='<div class="next-box"><div class="next-box-title">Lista de espera</div><div class="next-names" style="color:#9ca3af">Nenhum aguardando</div></div>';
+  } else {
+    const nomes=S.waitList.slice(0,5).map(id=>{const p=byId(id);return p?p.name:''}).filter(Boolean);
+    const f=Math.max(0,5-nomes.length);
+    ne.innerHTML='<div class="next-box"><div class="next-box-title">Próximo time</div><div class="next-names">'+nomes.join(', ')+(f>0?' <span style="color:#9ca3af">(faltam '+f+')</span>':'<span style="color:#15803d"> ✓</span>')+'</div></div>';
+  }
+
+  // Lista de espera
+  document.getElementById('waiting-list').innerHTML=!S.waitList.length
+    ?'<div class="empty-state">Nenhum na espera</div>'
+    :S.waitList.map((id,i)=>{const p=byId(id);return p?'<div class="player-row"><span class="p-num">'+(i+1)+'</span><span class="p-name">'+p.name+(p.age?'<span style="font-size:10px;color:#9ca3af;margin-left:4px">'+p.age+'a</span>':'')+'</span><span class="p-pos">'+p.pos+'</span><span class="pill pill-gray" style="font-size:10px;padding:2px 7px">#'+(i+1)+'</span></div>':''}).join('');
+}
+
+// ─── DECLARAR VENCEDOR ────────────────────────────────────
+function declareWinner(winner){
+  const snap=checkSnapshot();
+  const ts=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  S.gameCount++;
+
+  // Contabilizar stats
+  [...S.teamBlue,...S.teamYellow].forEach(id=>{
+    const p=byId(id);if(!p)return;
+    p.gamesPlayed++;
+    if(!S.stats[p.name])S.stats[p.name]={wins:0,games:0};
+    S.stats[p.name].games++;
+    if((winner==='blue'&&S.teamBlue.includes(id))||(winner==='yellow'&&S.teamYellow.includes(id))){
+      p.wins++;S.stats[p.name].wins++;
+    }
+  });
+
+  const nB=S.teamBlue.map(id=>{const p=byId(id);return p?p.name:''}).filter(Boolean).join(', ');
+  const nY=S.teamYellow.map(id=>{const p=byId(id);return p?p.name:''}).filter(Boolean).join(', ');
+  const res=winner==='draw'?'Empate → +2 min':
+    winner==='blue'?'🔵 Azul venceu ('+S.scoreBlue+'×'+S.scoreYellow+')':
+    '🟡 Amarelo venceu ('+S.scoreBlue+'×'+S.scoreYellow+')';
+  S.history.push({game:S.gameCount,ts,result:res,blue:nB,yellow:nY});
+
+  // EMPATE — só disponível quando isNewGameContext
+  if(winner==='draw'){
+    sndDraw();resetScore();
+    S.snapshotDone=false;S.snapshotIs17=false;
+    resetTimer();renderCourt();
+    return;
+  }
+
+  sndWin();
+
+  const winTeam = winner==='blue'?[...S.teamBlue]:[...S.teamYellow];
+  const loseTeam= winner==='blue'?[...S.teamYellow]:[...S.teamBlue];
+  const vetColor= S.veteranTeam; // null se 1ª partida
+  const novColor= S.veteranTeam==='blue'?'yellow':S.veteranTeam==='yellow'?'blue':null;
+
+  // ── CASO 1: Sem veterano — 1ª partida do ciclo ──────────────────────
+  if(S.veteranTeam===null){
+    // Vencedor fica (vira veterano), perdedor vai pro FINAL da lista
+    S.waitList=[...S.waitList,...loseTeam];
+    const newTeam=S.waitList.length>=5?S.waitList.splice(0,5):[];
+    if(winner==='blue'){S.teamYellow=newTeam;}else{S.teamBlue=newTeam;}
+    S.veteranTeam=winner;
+    S.isNewGameContext=false;
+
+  // ── CASO 2: Com veterano — 2ª partida do ciclo ──────────────────────
+  } else {
+    const veteranIsWinner=(vetColor===winner);
+
+    if(snap){
+      // ── 17+: saída dupla SÓ se veterano venceu ──────────────────
+      if(veteranIsWinner){
+        // Ambos saem — os primeiros da waitList entram como novos times
+        // Vencedor volta na lista APÓS quem já estava esperando, mas ANTES do perdedor
+        S.waitList=[...S.waitList,...winTeam,...loseTeam];
+        if(S.waitList.length>=10){
+          S.teamBlue=S.waitList.splice(0,5);
+          S.teamYellow=S.waitList.splice(0,5);
+        } else if(S.waitList.length>=5){
+          S.teamBlue=S.waitList.splice(0,5);S.teamYellow=[];
+        } else {S.teamBlue=[];S.teamYellow=[];}
+        S.veteranTeam=null;S.isNewGameContext=true;
+      } else {
+        // Veterano perdeu/empatou: rotação normal
+        // Perdedor (veterano) vai pro FINAL, vencedor (novato) fica e vira veterano
+        S.waitList=[...S.waitList,...loseTeam];
+        const newTeam=S.waitList.length>=5?S.waitList.splice(0,5):[];
+        if(winner==='blue'){S.teamYellow=newTeam;}else{S.teamBlue=newTeam;}
+        S.veteranTeam=winner;
+        S.isNewGameContext=false;
+      }
+
+    } else {
+      // ── Menos de 17: veterano sai SEMPRE, independente do resultado ──
+      // Ambos saem: veterano (obrigatório) + novato (perdedor ou vencedor — ambos saem)
+      // Veterano vai pro final, depois novato
+      S.waitList=[...S.waitList,...winTeam,...loseTeam];
+      if(S.waitList.length>=10){
+        S.teamBlue=S.waitList.splice(0,5);
+        S.teamYellow=S.waitList.splice(0,5);
+      } else if(S.waitList.length>=5){
+        if(vetColor==='blue'){S.teamBlue=S.waitList.splice(0,5);S.teamYellow=[];}
+        else{S.teamYellow=S.waitList.splice(0,5);S.teamBlue=[];}
+      } else {S.teamBlue=[];S.teamYellow=[];}
+      S.veteranTeam=null;S.isNewGameContext=true;
+    }
+  }
+
+  // Atualizar streaks
+  S.blueWinsStreak  = S.veteranTeam==='blue'?1:0;
+  S.yellowWinsStreak= S.veteranTeam==='yellow'?1:0;
+
+  resetScore();resetTimer();
+  renderPlayerList();renderAssocList();renderCourt();renderHistory();
+}
+
+// ─── CRONÔMETRO ──────────────────────────────────────────
+function getTimerDuration(){return 600;} // 10 min fixo
+
+function updateTimerDisplay(){
+  const dur=S.timerDuration;
+  const m=Math.floor(S.timerSecs/60),s=S.timerSecs%60;
+  const timeStr=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  const warn=S.timerSecs<=120&&S.timerSecs>0, danger=S.timerSecs<=30&&S.timerSecs>0;
+  let statusTxt='';
+  if(!S.timerRunning&&S.timerSecs===0) statusTxt='ACABOU! Verificar empate';
+  else if(!S.timerRunning&&S.timerSecs===dur) statusTxt='Pronto para iniciar';
+  else if(danger) statusTxt='⚠ FINALIZANDO...';
+  else if(warn) statusTxt='⏰ ÚLTIMOS 2 MIN — acompanhe o placar!';
+  else if(S.timerRunning) statusTxt='Partida em andamento';
+  else statusTxt='Pausado';
+
+  // ── Mobile: display normal ──
+  const d=document.getElementById('timer-display'),sub=document.getElementById('timer-status'),bar=document.getElementById('timer-bar');
+  if(d){
+    d.textContent=timeStr;
+    d.className='timer-num'+(danger?' danger':warn?' warning':'');
+  }
+  if(bar){bar.style.width=((S.timerSecs/dur)*100)+'%';bar.style.background=danger?'#dc2626':warn?'#d97706':'#1a1a1a';}
+  if(sub)sub.textContent=statusTxt;
+
+  // ── iPad hero: anel circular ──
+  const idigits=document.getElementById('ipad-timer-digits');
+  const istatus=document.getElementById('ipad-timer-status');
+  const iring=document.getElementById('ipad-ring');
+  const ibtnStart=document.getElementById('ipad-btn-start');
+  const ibtnPause=document.getElementById('ipad-btn-pause');
+  if(idigits){
+    idigits.textContent=timeStr;
+    idigits.className='ipad-timer-big'+(danger?' danger':warn?' warn':'');
+  }
+  if(istatus){
+    istatus.textContent=statusTxt;
+    istatus.className='ipad-timer-status'+(danger?' danger':warn?' warn':'');
+  }
+
+  if(ibtnStart){ibtnStart.disabled=S.timerRunning;}
+  if(ibtnPause){ibtnPause.disabled=!S.timerRunning;}
+}
+
+function startTimer(){
+  if(S.timerSecs===0){S.timerSecs=getTimerDuration();S.timerDuration=S.timerSecs;}
+  if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
+  S.timerRunning=true; S.warnedAt2=false;
+  const bs=document.getElementById('btn-start'),bp=document.getElementById('btn-pause');
+  if(bs)bs.disabled=true; if(bp)bp.disabled=false;
+  S.timer=setInterval(()=>{
+    if(S.timerSecs>0){
+      S.timerSecs--;
+      if(S.timerSecs===120&&!S.warnedAt2){S.warnedAt2=true;sndWarning();}
+      updateTimerDisplay();
+    } else {
+      clearInterval(S.timer); S.timerRunning=false;
+      const bs=document.getElementById('btn-start'),bp=document.getElementById('btn-pause');
+      if(bs)bs.disabled=false; if(bp)bp.disabled=true;
+      sndEnd(); updateTimerDisplay();
+    }
+  },1000);
+}
+
+function pauseTimer(){
+  clearInterval(S.timer); S.timerRunning=false;
+  const bs=document.getElementById('btn-start'),bp=document.getElementById('btn-pause');
+  if(bs)bs.disabled=false; if(bp)bp.disabled=true;
+  updateTimerDisplay();
+}
+
+function resetTimer(){
+  clearInterval(S.timer); S.timerRunning=false;
+  S.timerSecs=getTimerDuration(); S.timerDuration=S.timerSecs;
+  S.warnedAt2=false;
+  S.snapshotDone=false; S.snapshotIs17=false;
+  const bs=document.getElementById('btn-start'),bp=document.getElementById('btn-pause');
+  if(bs)bs.disabled=false; if(bp)bp.disabled=true;
+  updateTimerDisplay();
+}
+
+// ─── PLACAR ──────────────────────────────────────────────
+function changeScore(team,delta){
+  if(team==='blue'){S.scoreBlue=Math.max(0,S.scoreBlue+delta);document.getElementById('score-blue').textContent=S.scoreBlue;}
+  else{S.scoreYellow=Math.max(0,S.scoreYellow+delta);document.getElementById('score-yellow').textContent=S.scoreYellow;}
+  syncIPadScore();
+}
+function resetScore(){
+  S.scoreBlue=0;S.scoreYellow=0;
+  document.getElementById('score-blue').textContent='0';
+  document.getElementById('score-yellow').textContent='0';
+  syncIPadScore();
+}
+function syncIPadScore(){
+  const bi=document.getElementById('score-blue-ipad');
+  const yi=document.getElementById('score-yellow-ipad');
+  if(bi)bi.textContent=S.scoreBlue;
+  if(yi)yi.textContent=S.scoreYellow;
+}
+
+// ─── HISTÓRICO ───────────────────────────────────────────
+function renderHistory(){
+  const el=document.getElementById('history-list');
+  if(!S.history.length){el.innerHTML='<div class="empty-state">Nenhuma partida finalizada</div>';return;}
+  el.innerHTML=[...S.history].reverse().map(h=>'<div class="hist-row"><div class="hist-top"><span class="hist-game">Partida '+h.game+'</span><span class="hist-time">'+h.ts+'</span></div><div class="hist-teams">🔵 '+h.blue+'<br>🟡 '+h.yellow+'</div><div class="hist-result">'+h.result+'</div></div>').join('');
+  const se=document.getElementById('stats-list');
+  const entries=Object.entries(S.stats).filter(([,v])=>v.games>0).sort((a,b)=>b[1].wins-a[1].wins||b[1].games-a[1].games);
+  if(!entries.length){se.innerHTML='<div class="empty-state">Nenhum dado ainda</div>';return;}
+  se.innerHTML=entries.map(([name,v],i)=>'<div class="rank-row"><span class="rank-pos">'+(i+1)+'</span><span class="rank-name">'+name+'</span><span class="rank-wins">'+v.wins+'V</span><span class="rank-games">'+v.games+' jogos</span></div>').join('');
+}
+
+// ─── FOTO / SÚMULA ───────────────────────────────────────
+function onFotoSelected(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    S.fotoDataUrl=ev.target.result;
+    const prev=document.getElementById('foto-preview');
+    prev.src=S.fotoDataUrl;prev.style.display='block';
+    document.getElementById('foto-upload-area').style.display='none';
+    document.getElementById('foto-remove-btn').style.display='block';
+  };
+  reader.readAsDataURL(file);
+}
+function removeFoto(){
+  S.fotoDataUrl=null;
+  document.getElementById('foto-preview').style.display='none';
+  document.getElementById('foto-upload-area').style.display='block';
+  document.getElementById('foto-remove-btn').style.display='none';
+  document.getElementById('foto-input').value='';
+}
+function fecharSumula(){document.getElementById('sumula-overlay').classList.remove('show');}
+
+function gerarSumula(){
+  document.getElementById('overlay').classList.add('show');
+  if(S.fotoDataUrl){
+    const img=new Image();img.onload=()=>_renderCanvas(img);img.onerror=()=>_renderCanvas(null);img.src=S.fotoDataUrl;
+  }else{setTimeout(()=>_renderCanvas(null),80);}
+}
+
+function _renderCanvas(fotoImg){
+  const BG='#ffffff',BG2='#f7f7f7',BG3='#f0f0f0',TEXT1='#111111',TEXT2='#444444',TEXT3='#888888',DIVIDER='#e0e0e0';
+  const W=1080,P=56,COL=W-P*2;
+  const presentes=S.allPresent.length>0?S.allPresent:S.players,COLS=3,rowsP=Math.ceil(presentes.length/COLS)||1;
+  const rankEntries=Object.entries(S.stats).filter(([,v])=>v.games>0).sort((a,b)=>b[1].wins-a[1].wins||b[1].games-a[1].games);
+  const HEADER_H=148,FOTO_H=fotoImg?Math.round(COL*(9/16))+72:0,PRES_H=rowsP*34+80,STATS_H=90,RANK_H=rankEntries.length*42+80,FOOTER_H=72;
+  const TOTAL_H=HEADER_H+FOTO_H+PRES_H+STATS_H+RANK_H+FOOTER_H+40;
+  const canvas=document.getElementById('sumula-canvas');
+  canvas.width=W;canvas.height=TOTAL_H;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle=BG;ctx.fillRect(0,0,W,TOTAL_H);
+  ctx.fillStyle=TEXT1;ctx.fillRect(0,0,W,HEADER_H);
+  if(LOGO_IMG.complete&&LOGO_IMG.naturalWidth>0)ctx.drawImage(LOGO_IMG,P,16,90,108);
+  ctx.fillStyle='#ffffff';ctx.font='bold 52px -apple-system,Arial,sans-serif';ctx.fillText('ABV-MS · Bate-bola',P+112,62);
+  ctx.font='24px -apple-system,Arial,sans-serif';ctx.fillStyle='#aaaaaa';ctx.fillText(new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),P+112,96);
+  ctx.font='22px -apple-system,Arial,sans-serif';ctx.fillStyle='#888888';ctx.fillText((S.allPresent.length||presentes.length)+' presentes · '+S.gameCount+' partidas',P+112,124);
+  let y=HEADER_H+32;
+  if(fotoImg){
+    _label(ctx,'Foto do dia',P,y,TEXT3);y+=36;
+    const fW=COL,fH=Math.round(COL*(9/16));
+    ctx.save();ctx.beginPath();_rrPath(ctx,P,y,fW,fH,14);ctx.clip();
+    const ar=fotoImg.width/fotoImg.height,tar=fW/fH;let sx=0,sy=0,sw=fotoImg.width,sh=fotoImg.height;
+    if(ar>tar){sw=fotoImg.height*tar;sx=(fotoImg.width-sw)/2;}else{sh=fotoImg.width/tar;sy=(fotoImg.height-sh)/2;}
+    ctx.drawImage(fotoImg,sx,sy,sw,sh,P,y,fW,fH);ctx.restore();y+=fH+32;
+  }
+  _divider(ctx,P,y,COL,DIVIDER);y+=24;
+  _label(ctx,'Presentes ('+presentes.length+')',P,y,TEXT3);y+=36;
+  const cW=Math.floor(COL/COLS);
+  presentes.forEach((p,i)=>{const col=i%COLS,row=Math.floor(i/COLS),px=P+col*cW+2,py=y+row*34;ctx.fillStyle=row%2===0?BG:BG2;ctx.fillRect(px,py,cW-4,30);ctx.fillStyle=TEXT1;ctx.font='21px -apple-system,Arial,sans-serif';ctx.fillText(p.name,px+8,py+21);});
+  y+=rowsP*34+32;
+  _divider(ctx,P,y,COL,DIVIDER);y+=24;
+  _label(ctx,'Partidas',P,y,TEXT3);y+=36;
+  _rrRect(ctx,P,y,COL,56,10,BG2,BG3);ctx.fillStyle=TEXT1;ctx.font='bold 36px -apple-system,Arial,sans-serif';ctx.fillText(S.gameCount+' partidas realizadas no bate-bola de hoje',P+20,y+38);y+=56+32;
+  _divider(ctx,P,y,COL,DIVIDER);y+=24;
+  _label(ctx,'Ranking da sessão',P,y,TEXT3);y+=36;
+  if(!rankEntries.length){ctx.fillStyle=TEXT3;ctx.font='22px -apple-system,Arial,sans-serif';ctx.fillText('Nenhum dado registrado',P,y+22);y+=48;}
+  else{rankEntries.forEach(([name,v],i)=>{ctx.fillStyle=i%2===0?BG:BG2;ctx.fillRect(P,y,COL,38);ctx.fillStyle=i===0?'#ca8a04':TEXT3;ctx.font='bold 22px -apple-system,Arial,sans-serif';ctx.fillText(String(i+1)+'.',P+10,y+27);const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';if(medal){ctx.font='22px -apple-system,Arial,sans-serif';ctx.fillText(medal,P+46,y+27);}ctx.fillStyle=TEXT1;ctx.font=(i===0?'bold ':'')+' 24px -apple-system,Arial,sans-serif';ctx.fillText(name,P+80,y+27);ctx.fillStyle=i===0?TEXT1:TEXT2;ctx.font='bold 22px -apple-system,Arial,sans-serif';const vStr=v.wins+'V · '+v.games+' jogo'+(v.games!==1?'s':'');ctx.fillText(vStr,P+COL-ctx.measureText(vStr).width-10,y+27);ctx.fillStyle=DIVIDER;ctx.fillRect(P,y+38,COL,1);y+=42;});}
+  y+=24;ctx.fillStyle=TEXT1;ctx.fillRect(0,y,W,FOOTER_H);ctx.fillStyle='#ffffff';ctx.font='22px -apple-system,Arial,sans-serif';ctx.textAlign='center';ctx.fillText('Associação de Basquete Veterano de Mato Grosso do Sul · ABV-MS',W/2,y+28);ctx.fillStyle='#888888';ctx.font='20px -apple-system,Arial,sans-serif';ctx.fillText('facebook.com/abvmsoficial  ·  instagram.com/abvmsoficial',W/2,y+54);ctx.textAlign='left';
+  const dataUrl=canvas.toDataURL('image/png');document.getElementById('sumula-img').src=dataUrl;document.getElementById('overlay').classList.remove('show');document.getElementById('sumula-overlay').classList.add('show');
+}
+function _rrRect(ctx,x,y,w,h,r,fill,stroke){ctx.beginPath();_rrPath(ctx,x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1.5;ctx.stroke();}}
+function _rrPath(ctx,x,y,w,h,r){ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+function _label(ctx,text,x,y,color){ctx.fillStyle=color;ctx.font='700 20px -apple-system,Arial,sans-serif';ctx.fillText(text.toUpperCase(),x,y+16);}
+function _divider(ctx,x,y,w,color){ctx.fillStyle=color;ctx.fillRect(x,y,w,1);}
+
+// ─── RESET ───────────────────────────────────────────────
+function resetAll(){
+  if(!confirm('Resetar toda a sessão?'))return;
+  S.players=[];S.teamBlue=[];S.teamYellow=[];S.waitList=[];S.allPresent=[];
+  S.blueWinsStreak=0;S.yellowWinsStreak=0;S.gameCount=0;
+  S.veteranTeam=null;S.isNewGameContext=true;
+  S.snapshotDone=false;S.snapshotIs17=false;
+  S.history=[];S.stats={};S.fotoDataUrl=null;
+  resetScore();resetTimer();removeFoto();renderAssocList();renderPlayerList();renderCourt();
+}
+
+
+// ── Logout ────────────────────────────────────────────
+async function fazerLogout(){
+  if(!confirm('Sair do MasterBateBola.app?'))return;
+  await _sb.auth.signOut();
+  window.location.href='auth.html';
+}
+
+// ── Aplicar identidade do grupo ───────────────────────
+window.addEventListener('load', () => {
+  if(!window._grupo) return;
+  const g = window._grupo;
+  // Atualizar título
+  const h1 = document.querySelector('.header-text h1');
+  if(h1) h1.textContent = g.nome + ' · Bate-bola';
+  // Atualizar ROSTER com limiar do grupo
+  if(g.limiar_saida_dupla) window._limiarSaidaDupla = g.limiar_saida_dupla;
+});
+
+if('serviceWorker'in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{});});}
+renderAssocList();renderPlayerList();renderCourt();renderHistory();updateTimerDisplay();
+
+// ── iPad dashboard layout ──────────────────────────────
+function isTablet(){return window.innerWidth>=768;}
+
+function buildIPadLayout(){
+  if(!isTablet()||document.querySelector('.ipad-grid'))return;
+
+  const appContent=document.querySelector('.content');
+  const lista  =document.getElementById('page-lista');
+  const quadra =document.getElementById('page-quadra');
+  const placar =document.getElementById('page-placar');
+  const hist   =document.getElementById('page-hist');
+
+  const tabBar=document.getElementById('ipad-tab-bar');
+  if(tabBar)tabBar.style.display='none';
+  const mainTabs=document.getElementById('main-tabs');
+  if(mainTabs)mainTabs.style.display='none';
+
+  const grid=document.createElement('div');
+  grid.className='ipad-grid';
+
+  // ── ESQUERDA: Presença ──
+  const left=document.createElement('div');
+  left.className='ipad-col ipad-left';
+  left.innerHTML='<div class="ipad-col-title">Presença</div>';
+  left.appendChild(lista);
+  lista.classList.add('ipad-visible');
+
+  // ── CENTRO: Placar colorido em destaque + Cronômetro ──
+  const center=document.createElement('div');
+  center.className='ipad-col ipad-center';
+  center.innerHTML='<div class="ipad-col-title">Placar</div>';
+
+  // Linha de placares lado a lado
+  const placarRow=document.createElement('div');
+  placarRow.className='ipad-placar-row';
+
+  const pbBlue=document.createElement('div');
+  pbBlue.className='ipad-placar-blue';
+  pbBlue.innerHTML=`
+    <span class="ipad-score-label">🔵 AZUL</span>
+    <span class="ipad-score-num" id="score-blue-ipad">0</span>
+    <div class="ipad-score-controls">
+      <button onclick="changeScore('blue',2)">+2</button>
+      <button onclick="changeScore('blue',3)">+3</button>
+      <button onclick="changeScore('blue',-1)">−</button>
+    </div>`;
+
+  const vs=document.createElement('div');
+  vs.className='ipad-vs';vs.textContent='×';
+
+  const pbYellow=document.createElement('div');
+  pbYellow.className='ipad-placar-yellow';
+  pbYellow.innerHTML=`
+    <span class="ipad-score-label">🟡 AMARELO</span>
+    <span class="ipad-score-num" id="score-yellow-ipad">0</span>
+    <div class="ipad-score-controls">
+      <button onclick="changeScore('yellow',2)">+2</button>
+      <button onclick="changeScore('yellow',3)">+3</button>
+      <button onclick="changeScore('yellow',-1)">−</button>
+    </div>`;
+
+  placarRow.appendChild(pbBlue);
+  placarRow.appendChild(vs);
+  placarRow.appendChild(pbYellow);
+  center.appendChild(placarRow);
+
+  // Cronômetro hero — elemento visual principal
+  const timerHero=document.createElement('div');
+  timerHero.className='ipad-timer-hero';
+  // display simples sem anel SVG
+  timerHero.innerHTML=`
+    <div class="ipad-timer-label">Cronômetro · 10 min</div>
+    <div class="ipad-timer-big" id="ipad-timer-digits">10:00</div>
+    <div class="ipad-timer-status" id="ipad-timer-status">Pronto para iniciar</div>
+    <div class="ipad-timer-btns">
+      <button class="ipad-btn-start" id="ipad-btn-start" onclick="startTimer()">▶ Iniciar</button>
+      <button class="ipad-btn-pause" id="ipad-btn-pause" onclick="pauseTimer()" disabled>⏸ Pausar</button>
+      <button class="ipad-btn-reset" onclick="resetTimer()">↺ Reset</button>
+    </div>
+  `;
+
+  center.appendChild(timerHero);
+
+  // page-placar fica no DOM mas oculta (mobile usa, iPad usa hero)
+  placar.classList.add('ipad-visible');
+  center.appendChild(placar);
+
+  // ── DIREITA: Quadra + Lista de espera + Súmula ──
+  const right=document.createElement('div');
+  right.className='ipad-col ipad-right';
+  right.innerHTML='<div class="ipad-col-title">Quadra</div>';
+  quadra.classList.add('ipad-visible');
+  right.appendChild(quadra);
+  // Súmula inline no final da coluna direita
+  hist.classList.add('ipad-visible');
+  const sumulaWrap=document.createElement('div');
+  sumulaWrap.className='ipad-sumula-wrap';
+  sumulaWrap.innerHTML='<div class="ipad-col-title" style="margin-top:8px">Súmula</div>';
+  sumulaWrap.appendChild(hist);
+  right.appendChild(sumulaWrap);
+
+  grid.appendChild(left);
+  grid.appendChild(center);
+  grid.appendChild(right);
+  appContent.appendChild(grid);
+
+  // Sincronizar placares ipad com os originais
+  syncIPadScore();
+
+  renderAssocList();renderPlayerList();renderCourt();renderHistory();updateTimerDisplay();
+}
+
+// Sincroniza os displays de placar do iPad com os valores do estado
+function syncIPadScore(){
+  const bi=document.getElementById('score-blue-ipad');
+  const yi=document.getElementById('score-yellow-ipad');
+  if(bi)bi.textContent=S.scoreBlue;
+  if(yi)yi.textContent=S.scoreYellow;
+}
+
+// toggleIPadSumula/closeIPadSumula removidos — súmula agora é inline na coluna direita
+
+function teardownIPadLayout(){
+  const grid=document.querySelector('.ipad-grid');
+  if(!grid)return;
+  const appContent=document.querySelector('.content');
+  const lista  =document.getElementById('page-lista');
+  const quadra =document.getElementById('page-quadra');
+  const placar =document.getElementById('page-placar');
+  const hist   =document.getElementById('page-hist');
+  // Restaurar card de placar original se foi ocultado
+  const placarCards=placar.querySelectorAll('.card');
+  if(placarCards.length>1) placarCards[1].style.display='';
+  [lista,quadra,placar,hist].forEach(p=>{
+    p.classList.remove('ipad-visible','ipad-sumula-wrap','active');
+    p.style.display='';
+    appContent.appendChild(p);
+  });
+  grid.remove();
+  const mt=document.getElementById('main-tabs');
+  if(mt)mt.style.display='flex';
+  switchTab('lista');
+}
+
+let _wasTablet=isTablet();
+window.addEventListener('resize',()=>{
+  const now=isTablet();
+  if(now&&!_wasTablet){buildIPadLayout();}
+  else if(!now&&_wasTablet){teardownIPadLayout();}
+  _wasTablet=now;
+  renderCourt();
+});
+
+if(isTablet()){buildIPadLayout();}
+
+</script>
+</body>
+</html>
