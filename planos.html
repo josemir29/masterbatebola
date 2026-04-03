@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MasterBateBola.app — Escolha seu plano</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans:['"Plus Jakarta Sans"','sans-serif'],
+        outfit:['Outfit','sans-serif'],
+        bebas:['"Bebas Neue"','sans-serif'],
+      },
+      colors: {
+        brand:{50:'#fff7ed',100:'#ffedd5',500:'#f15a24',600:'#d6491a',900:'#7c2d12'},
+        dark:{900:'#0f172a',800:'#1e293b',700:'#334155'}
+      },
+      boxShadow: {
+        soft:'0 20px 40px -15px rgba(0,0,0,0.08)',
+        glow:'0 0 40px -10px rgba(241,90,36,0.35)',
+      }
+    }
+  }
+}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;600;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+.bg-orb-1{position:fixed;top:-10%;left:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(241,90,36,0.1) 0%,rgba(255,255,255,0) 70%);border-radius:50%;filter:blur(60px);z-index:0;pointer-events:none}
+.bg-orb-2{position:fixed;bottom:-10%;right:-5%;width:600px;height:600px;background:radial-gradient(circle,rgba(59,130,246,0.07) 0%,rgba(255,255,255,0) 70%);border-radius:50%;filter:blur(80px);z-index:0;pointer-events:none}
+.plan-card{transition:all .25s ease}
+.plan-card:hover{transform:translateY(-4px)}
+.loading{display:none;position:fixed;inset:0;background:rgba(255,255,255,0.92);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.loading.show{display:flex}
+.spinner{width:36px;height:36px;border:3px solid rgba(241,90,36,0.2);border-top-color:#f15a24;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen">
+
+<div class="bg-orb-1"></div>
+<div class="bg-orb-2"></div>
+
+<!-- Loading -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <p class="text-sm font-semibold text-slate-500">Ativando seu plano...</p>
+</div>
+
+<!-- Nav -->
+<nav class="relative z-10 flex items-center justify-between px-6 py-5 max-w-5xl mx-auto">
+  <img src="https://masterbatebola.app.br/logo-preta.png" alt="MasterBateBola.app" class="h-10 w-auto"/>
+  <button onclick="fazerLogout()" class="text-sm text-slate-400 hover:text-slate-600 transition-colors font-medium">
+    Sair
+  </button>
+</nav>
+
+<!-- Header -->
+<div class="relative z-10 text-center px-6 pt-6 pb-14">
+  <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-50 border border-brand-100 text-brand-600 text-xs font-bold uppercase tracking-widest mb-6">
+    🏀 Escolha seu plano
+  </div>
+  <h1 class="font-outfit font-black text-4xl md:text-5xl text-dark-900 leading-tight mb-4">
+    Simples e sem surpresa.
+  </h1>
+  <p class="text-slate-400 text-base max-w-md mx-auto">
+    Cancele quando quiser. Sem taxas escondidas.
+  </p>
+</div>
+
+<!-- Cards -->
+<div class="relative z-10 max-w-4xl mx-auto px-6 pb-24">
+  <div class="grid md:grid-cols-2 gap-8 items-center">
+
+    <!-- GRÁTIS -->
+    <div class="plan-card bg-white rounded-3xl p-8 border border-slate-200 shadow-soft flex flex-col">
+      <h3 class="font-outfit font-bold text-2xl text-dark-900 mb-2">Grátis</h3>
+      <p class="text-slate-400 text-sm mb-5">Para testar o sistema no seu bate-bola.</p>
+
+      <div class="font-bebas text-6xl text-dark-900 mb-7">
+        R$0<span class="text-lg font-sans text-slate-400 ml-1 font-normal">/mês</span>
+      </div>
+
+      <ul class="space-y-4 mb-8 text-sm text-slate-600 flex-1">
+        <li class="flex items-center gap-3">
+          <svg class="w-5 h-5 text-brand-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Até <strong class="ml-1">12 associados</strong>
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-5 h-5 text-brand-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Rodízio automático básico
+        </li>
+        <li class="flex items-center gap-3">
+          <svg class="w-5 h-5 text-brand-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Cronômetro com sons
+        </li>
+        <li class="flex items-center gap-3 opacity-35">
+          <svg class="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          Dashboard na TV
+        </li>
+        <li class="flex items-center gap-3 opacity-35">
+          <svg class="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          Súmula PNG com logo
+        </li>
+      </ul>
+
+      <button onclick="ativarPlano('free')"
+        class="w-full py-4 rounded-xl font-bold border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all">
+        Testar Grátis
+      </button>
+    </div>
+
+    <!-- ASSOCIAÇÃO (destaque) -->
+    <div class="plan-card relative bg-dark-900 rounded-3xl p-8 border border-brand-500/30 shadow-2xl md:-translate-y-4 flex flex-col">
+      <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-500 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-glow whitespace-nowrap">
+        Completo
+      </div>
+
+      <h3 class="font-outfit font-bold text-2xl text-white mb-2">Associação</h3>
+      <p class="text-slate-400 text-sm mb-5">A experiência completa para gerenciar o seu baska ou liga.</p>
+
+      <div class="font-bebas text-6xl text-white mb-7 flex items-end gap-0">
+        R$56<span class="text-4xl">,90</span>
+        <span class="text-lg font-sans text-slate-500 ml-1 mb-1 font-normal">/mês</span>
+      </div>
+
+      <ul class="space-y-4 mb-8 text-sm text-slate-300 flex-1">
+        <li class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-brand-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <span>Associados e equipes <strong class="text-white">ilimitados</strong></span>
+        </li>
+        <li class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-brand-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <span><strong class="text-white">Dashboard na TV</strong> via HDMI</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-brand-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <span><strong class="text-white">Súmula PNG</strong>, cores e logo do clube</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-brand-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <span>Múltiplas quadras e relatórios</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-brand-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <span>Regras ajustáveis (saída dupla, tempo)</span>
+        </li>
+      </ul>
+
+      <button onclick="ativarPlano('associacao')"
+        class="w-full py-4 rounded-xl font-bold bg-brand-500 text-white hover:bg-brand-600 shadow-glow transition-all hover:-translate-y-0.5">
+        Assinar Associação
+      </button>
+      <p class="text-center text-xs text-slate-600 mt-3">Cancela quando quiser</p>
+    </div>
+
+  </div>
+
+  <!-- Nota rodapé -->
+  <p class="text-center text-xs text-slate-400 mt-10">
+    Pagamentos processados com segurança via Stripe.
+    Tem dúvidas? <a href="mailto:contato@masterbatebola.app.br" class="text-brand-500 hover:underline">Fale conosco</a>
+  </p>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://cfcdwyxciflddccdxokw.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_FSx4e9Os478sCRS7x2SCFA_dzqS1WUe'
+const { createClient } = supabase
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+// Verificar se já tem sessão
+sb.auth.getSession().then(({ data }) => {
+  if (!data.session) window.location.href = 'auth.html'
+})
+
+// Verificar se veio de uma feature bloqueada
+const params = new URLSearchParams(window.location.search)
+const feature = params.get('feature')
+if (feature) {
+  const nomes = {
+    'dashboard': 'Dashboard na TV',
+    'sumula': 'Súmula PNG',
+    'cores': 'Cores e logo do clube',
+    'roster': 'Roster ilimitado'
+  }
+  const el = document.querySelector('.text-slate-400.text-base')
+  if (el && nomes[feature]) {
+    el.innerHTML = `Para usar <strong class="text-brand-500">${nomes[feature]}</strong>, assine o plano Associação.`
+  }
+}
+
+async function ativarPlano(plano) {
+  const { data: { session } } = await sb.auth.getSession()
+  if (!session) { window.location.href = 'auth.html'; return }
+
+  if (plano === 'free') {
+    // Salvar plano free no banco e ir pro app
+    document.getElementById('loading').classList.add('show')
+    await sb.from('grupos')
+      .update({ plano: 'free' })
+      .eq('owner_id', session.user.id)
+    window.location.href = 'app.html'
+    return
+  }
+
+  if (plano === 'associacao') {
+    // Fase 3: Stripe — por enquanto mostra aviso
+    document.getElementById('loading').classList.add('show')
+    // TODO: redirecionar para Stripe Checkout
+    // Por agora ativa como trial para teste
+    await sb.from('grupos')
+      .update({ plano: 'associacao' })
+      .eq('owner_id', session.user.id)
+    window.location.href = 'app.html'
+  }
+}
+
+async function fazerLogout() {
+  await sb.auth.signOut()
+  window.location.href = 'auth.html'
+}
+</script>
+</body>
+</html>

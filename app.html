@@ -255,30 +255,42 @@ html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
-// ── Auth Guard ────────────────────────────────────────
+// ── Auth Guard + Feature Gate ─────────────────────────
 const _SB_URL = 'https://cfcdwyxciflddccdxokw.supabase.co'
 const _SB_KEY = 'sb_publishable_FSx4e9Os478sCRS7x2SCFA_dzqS1WUe'
 const { createClient } = supabase
 const _sb = createClient(_SB_URL, _SB_KEY)
 
-// Bloquear renderização até confirmar sessão
 document.documentElement.style.visibility = 'hidden'
 
 _sb.auth.getSession().then(async ({ data }) => {
-  if (!data.session) {
-    window.location.href = 'auth.html'
-    return
-  }
-  // Carregar dados do grupo
+  if (!data.session) { window.location.href = 'auth.html'; return }
+
   const { data: grupos } = await _sb.from('grupos').select('*').limit(1)
-  if (!grupos || grupos.length === 0) {
-    window.location.href = 'onboarding.html'
-    return
-  }
-  // Injetar dados do grupo no app
-  window._grupo = grupos[0]
+  if (!grupos || grupos.length === 0) { window.location.href = 'onboarding.html'; return }
+
+  window._grupo  = grupos[0]
+  window._plano  = grupos[0].plano || 'free'
+  window._limiarSaidaDupla = grupos[0].limiar_saida_dupla || 17
+  window._maxJogadores = (window._plano === 'free') ? 12 : Infinity
+
   document.documentElement.style.visibility = 'visible'
+  _aplicarGrupo()
 })
+
+// Aplica identidade visual do grupo
+function _aplicarGrupo() {
+  const g = window._grupo; if (!g) return
+  const h1 = document.querySelector('.header-text h1')
+  if (h1) h1.textContent = g.nome + ' · Bate-bola'
+}
+
+// Feature gate — bloqueia features premium no plano free
+function _checkFeature(feature) {
+  if (window._plano && window._plano !== 'free') return true
+  window.location.href = 'planos.html?feature=' + feature
+  return false
+}
 </script>
 </head>
 <body>
@@ -302,7 +314,7 @@ _sb.auth.getSession().then(async ({ data }) => {
     <button class="tab active" onclick="switchTab('lista')">Presença</button>
     <button class="tab" onclick="switchTab('quadra')">Quadra</button>
     <button class="tab" onclick="switchTab('placar')">Placar</button>
-    <button class="tab" onclick="switchTab('hist')">Súmula</button>
+    <button class="tab" onclick="if(_checkFeature('sumula'))switchTab('hist')">Súmula</button>
   </div>
   <!-- Aba extra só no iPad: acesso à Súmula fora do dashboard -->
   <div id="ipad-tab-bar" style="display:none;padding:8px 16px 0;background:#fff;gap:8px;justify-content:flex-end">
@@ -438,7 +450,7 @@ _sb.auth.getSession().then(async ({ data }) => {
         <div class="card-title">Ranking da sessão</div>
         <div id="stats-list"><div class="empty-state">Nenhum dado ainda</div></div>
       </div>
-      <button class="btn btn-green" onclick="gerarSumula()">📄 Gerar Súmula PNG</button>
+      <button class="btn btn-green" onclick="if(_checkFeature('sumula'))gerarSumula()">📄 Gerar Súmula PNG</button>
       <p style="font-size:11px;color:#9ca3af;text-align:center;margin-top:8px;padding-bottom:4px">Pressione e segure a imagem para salvar no celular</p>
     </div>
   </div>
@@ -599,6 +611,12 @@ function togglePresence(name,pos){
     }
     S.players=S.players.filter(x=>x.id!==p.id);
   } else {
+    // Verificar limite do plano free
+    if((window._maxJogadores||Infinity) !== Infinity && S.players.length >= window._maxJogadores){
+      alert('Plano Grátis: limite de '+window._maxJogadores+' jogadores.\nAssine o plano Associação para roster ilimitado.');
+      window.location.href='planos.html?feature=roster';
+      return;
+    }
     const id=Date.now()+Math.random();
     const rEntry=ROSTER.find(r=>r.name===name);
     const age=rEntry?rEntry.age:null;
@@ -1103,17 +1121,6 @@ async function fazerLogout(){
   window.location.href='auth.html';
 }
 
-// ── Aplicar identidade do grupo ───────────────────────
-window.addEventListener('load', () => {
-  if(!window._grupo) return;
-  const g = window._grupo;
-  // Atualizar título
-  const h1 = document.querySelector('.header-text h1');
-  if(h1) h1.textContent = g.nome + ' · Bate-bola';
-  // Atualizar ROSTER com limiar do grupo
-  if(g.limiar_saida_dupla) window._limiarSaidaDupla = g.limiar_saida_dupla;
-});
-
 if('serviceWorker'in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{});});}
 renderAssocList();renderPlayerList();renderCourt();renderHistory();updateTimerDisplay();
 
@@ -1122,6 +1129,7 @@ function isTablet(){return window.innerWidth>=768;}
 
 function buildIPadLayout(){
   if(!isTablet()||document.querySelector('.ipad-grid'))return;
+  if(!_checkFeature('dashboard'))return;
 
   const appContent=document.querySelector('.content');
   const lista  =document.getElementById('page-lista');
