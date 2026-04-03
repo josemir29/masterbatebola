@@ -267,7 +267,15 @@ _sb.auth.getSession().then(async ({ data }) => {
   if (!data.session) { window.location.href = 'auth.html'; return }
 
   const { data: grupos } = await _sb.from('grupos').select('*').limit(1)
-  if (!grupos || grupos.length === 0) { window.location.href = 'onboarding.html'; return }
+  if (!grupos || grupos.length === 0) {
+    // Sem grupo: ver se tem plano na sessão
+    if (sessionStorage.getItem('plano_escolhido')) {
+      window.location.href = 'onboarding.html'
+    } else {
+      window.location.href = 'planos.html'
+    }
+    return
+  }
 
   window._grupo  = grupos[0]
   window._plano  = grupos[0].plano || 'free'
