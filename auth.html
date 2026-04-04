@@ -145,27 +145,38 @@ const SUPABASE_KEY = 'sb_publishable_FSx4e9Os478sCRS7x2SCFA_dzqS1WUe'
 const { createClient } = supabase
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-sb.auth.getSession().then(({ data }) => {
-  if (data.session) redirecionarAposLogin()
-})
-sb.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' && session) redirecionarAposLogin()
+// REGRA FUNDAMENTAL: auth.html NUNCA redireciona por sessão em cache.
+// Só redireciona após um evento SIGNED_IN explícito (login ativo do usuário).
+// Isso resolve o bug de redirect imediato ao abrir a página.
+let _jaRedirecionou = false
+
+sb.auth.onAuthStateChange(async (event, session) => {
+  // Ignorar INITIAL_SESSION — é a sessão em cache, não um login novo
+  if (event === 'INITIAL_SESSION') return
+  
+  // Só age em SIGNED_IN real (email/senha ou OAuth callback)
+  if (event === 'SIGNED_IN' && session && !_jaRedirecionou) {
+    _jaRedirecionou = true
+    await _redirecionar()
+  }
 })
 
-async function redirecionarAposLogin() {
-  const { data: grupos } = await sb.from('grupos').select('id,plano').limit(1)
-  if (!grupos || grupos.length === 0) {
-    // Novo usuário: escolhe plano primeiro
+async function _redirecionar() {
+  try {
+    const { data: grupos } = await sb.from('grupos').select('id,plano').limit(1)
+    if (!grupos || grupos.length === 0) {
+      window.location.href = 'planos.html'
+    } else if (!grupos[0].plano) {
+      window.location.href = 'planos.html'
+    } else {
+      window.location.href = 'app.html'
+    }
+  } catch(e) {
     window.location.href = 'planos.html'
-  } else if (!grupos[0].plano || grupos[0].plano === '') {
-    // Tem grupo mas sem plano definido: vai para planos
-    window.location.href = 'planos.html'
-  } else {
-    // Já tem grupo e plano: vai direto pro app
-    window.location.href = 'app.html'
   }
 }
 
+// ── TABS ──────────────────────────────────────────────────────────────────
 function setTab(tab) {
   const isLogin = tab === 'login'
   document.getElementById('tab-login').className = `flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${isLogin ? 'bg-white shadow-sm text-dark-900' : 'text-slate-500'}`
@@ -185,41 +196,61 @@ function mostrarMsg(tipo, texto) {
 }
 function esconderMsg() { document.getElementById('msg').classList.add('hidden') }
 
+// ── LOGIN ─────────────────────────────────────────────────────────────────
 async function fazerLogin() {
   const email = document.getElementById('login-email').value.trim()
   const senha = document.getElementById('login-senha').value
   if (!email || !senha) return mostrarMsg('error', 'Preencha email e senha.')
   const btn = document.getElementById('btn-login')
-  btn.disabled = true; btn.textContent = 'Entrando...'
+  btn.disabled = true
+  btn.textContent = 'Entrando...'
   const { error } = await sb.auth.signInWithPassword({ email, password: senha })
   if (error) {
-    mostrarMsg('error', error.message === 'Invalid login credentials' ? 'Email ou senha incorretos.' : error.message)
-    btn.disabled = false; btn.textContent = 'Entrar'
+    const msg = error.message === 'Invalid login credentials'
+      ? 'Email ou senha incorretos.'
+      : error.message === 'Email not confirmed'
+      ? 'Confirme seu email antes de entrar.'
+      : error.message
+    mostrarMsg('error', msg)
+    btn.disabled = false
+    btn.textContent = 'Entrar'
   }
+  // sucesso: onAuthStateChange SIGNED_IN cuida do redirect
 }
 
+// ── CADASTRO ──────────────────────────────────────────────────────────────
 async function fazerCadastro() {
   const nome  = document.getElementById('cad-nome').value.trim()
   const email = document.getElementById('cad-email').value.trim()
   const senha = document.getElementById('cad-senha').value
   if (!nome || !email || !senha) return mostrarMsg('error', 'Preencha todos os campos.')
-  if (senha.length < 6) return mostrarMsg('error', 'Senha precisa ter pelo menos 6 caracteres.')
+  if (senha.length < 6) return mostrarMsg('error', 'Senha: mínimo 6 caracteres.')
   const btn = document.getElementById('btn-cadastro')
-  btn.disabled = true; btn.textContent = 'Criando conta...'
-  const { error } = await sb.auth.signUp({ email, password: senha, options: { data: { nome_completo: nome } } })
+  btn.disabled = true
+  btn.textContent = 'Criando conta...'
+  const { error } = await sb.auth.signUp({
+    email,
+    password: senha,
+    options: { data: { nome_completo: nome } }
+  })
   if (error) {
     mostrarMsg('error', error.message)
   } else {
-    mostrarMsg('success', '✓ Conta criada! Verifique seu email para confirmar.')
+    mostrarMsg('success', '✓ Conta criada! Verifique seu email e depois faça login aqui.')
   }
-  btn.disabled = false; btn.textContent = 'Criar conta grátis'
+  btn.disabled = false
+  btn.textContent = 'Criar conta grátis'
 }
 
+// ── GOOGLE OAuth ──────────────────────────────────────────────────────────
 async function loginGoogle() {
-  await sb.auth.signInWithOAuth({
+  const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + '/onboarding.html' }
+    options: {
+      redirectTo: 'https://sistema.masterbatebola.app.br/planos.html'
+    }
   })
+  if (error) mostrarMsg('error', 'Erro ao iniciar login com Google.')
 }
 </script>
 </body>

@@ -255,6 +255,131 @@ html,body{height:100%;background:#f9f9f7;color:#1a1a1a;font-family:-apple-system
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
+// ── CONFIG ────────────────────────────────────────────
+const _SB_URL = 'https://cfcdwyxciflddccdxokw.supabase.co'
+const _SB_KEY = 'sb_publishable_FSx4e9Os478sCRS7x2SCFA_dzqS1WUe'
+const { createClient } = supabase
+const _sb = createClient(_SB_URL, _SB_KEY)
+
+document.documentElement.style.visibility = 'hidden'
+
+// ── INICIALIZAÇÃO ─────────────────────────────────────
+_sb.auth.getSession().then(async ({ data }) => {
+  if (!data.session) { window.location.href = 'auth.html'; return }
+
+  const { data: grupos } = await _sb.from('grupos').select('*').limit(1)
+
+  if (!grupos || grupos.length === 0) {
+    const planoSessao = sessionStorage.getItem('plano_escolhido')
+    window.location.href = planoSessao ? 'onboarding.html' : 'planos.html'
+    return
+  }
+
+  window._grupo  = grupos[0]
+  window._plano  = grupos[0].plano || 'free'
+  window._uid    = data.session.user.id
+  window._limiarSaidaDupla = grupos[0].limiar_saida_dupla || 17
+  window._maxJogadores = (window._plano === 'free') ? 12 : Infinity
+
+  // Carregar roster do Supabase
+  await _carregarRoster()
+
+  document.documentElement.style.visibility = 'visible'
+  _aplicarGrupo()
+})
+
+// ── CARREGAR ROSTER DO SUPABASE ───────────────────────
+async function _carregarRoster() {
+  const { data: jogadores } = await _sb
+    .from('jogadores')
+    .select('*')
+    .eq('grupo_id', window._grupo.id)
+    .order('posicao')
+    .order('apelido')
+
+  if (jogadores && jogadores.length > 0) {
+    // Substituir ROSTER estático pelo dinâmico do banco
+    window.ROSTER = jogadores.map(j => ({
+      name: j.apelido,
+      pos: j.posicao || 'Sem posição',
+      dob: j.data_nascimento || null,
+      age: j.data_nascimento ? _calcAge(j.data_nascimento) : null,
+      id_db: j.id
+    }))
+    // Reprocessar ROSTER com idades
+    window.ROSTER = window.ROSTER.map(r => ({...r, age: r.dob ? calcAge(r.dob) : null}))
+  }
+  // Se sem jogadores no banco: mantém ROSTER estático (modo demo)
+}
+
+function _calcAge(dob) {
+  try {
+    const p = dob.split('/'); 
+    const d = new Date(+p[2], +p[1]-1, +p[0]); 
+    const t = new Date();
+    let a = t.getFullYear()-d.getFullYear();
+    if(t.getMonth()<d.getMonth()||(t.getMonth()===d.getMonth()&&t.getDate()<d.getDate()))a--;
+    return a;
+  } catch(e){ return null; }
+}
+
+// ── APLICAR IDENTIDADE DO GRUPO ───────────────────────
+function _aplicarGrupo() {
+  const g = window._grupo; if(!g) return
+  const h1 = document.querySelector('.header-text h1')
+  if(h1) h1.textContent = g.nome + ' · Bate-bola'
+}
+
+// ── FEATURE GATE ──────────────────────────────────────
+function _checkFeature(feature) {
+  if(window._plano && window._plano !== 'free') return true
+  window.location.href = 'planos.html?feature=' + feature
+  return false
+}
+
+// ── SALVAR SESSÃO NO SUPABASE ─────────────────────────
+let _sessaoId = null
+
+async function _iniciarSessao() {
+  if(_sessaoId || !window._grupo) return
+  const { data } = await _sb.from('sessoes').insert({
+    grupo_id: window._grupo.id,
+    data: new Date().toISOString().split('T')[0]
+  }).select().single()
+  if(data) _sessaoId = data.id
+}
+
+async function _salvarPresenca(jogadorId) {
+  if(!_sessaoId) await _iniciarSessao()
+  if(!_sessaoId || !jogadorId) return
+  await _sb.from('presencas').insert({
+    sessao_id: _sessaoId,
+    jogador_id: jogadorId,
+    ordem_chegada: S.allPresent.length
+  }).then(() => {})
+}
+
+async function _salvarPartida(numPartida, timeA, timeB, placarA, placarB, resultado) {
+  if(!_sessaoId) return
+  await _sb.from('partidas').insert({
+    sessao_id: _sessaoId,
+    numero: numPartida,
+    time_a_jogadores: timeA,
+    time_b_jogadores: timeB,
+    placar_a: placarA,
+    placar_b: placarB,
+    resultado: resultado
+  }).then(() => {})
+}
+
+// ── LOGOUT ────────────────────────────────────────────
+async function fazerLogout(){
+  if(!confirm('Sair do MasterBateBola.app?')) return
+  await _sb.auth.signOut()
+  window.location.href = 'auth.html'
+}
+</script>
+<script>
 // ── Auth Guard + Feature Gate ─────────────────────────
 const _SB_URL = 'https://cfcdwyxciflddccdxokw.supabase.co'
 const _SB_KEY = 'sb_publishable_FSx4e9Os478sCRS7x2SCFA_dzqS1WUe'
@@ -314,6 +439,7 @@ function _checkFeature(feature) {
     <div style="display:flex;align-items:center;gap:8px">
       <button class="sound-btn" id="sound-btn" onclick="toggleSound()">🔔</button>
       <button class="sound-btn" onclick="fazerLogout()" title="Sair" style="font-size:14px">⏏</button>
+      <button class="sound-btn" onclick="window.location.href='jogadores.html'" title="Jogadores" style="font-size:14px">👥</button>
       <span class="pill pill-gray" id="mode-pill"><span class="dot"></span>&nbsp;0 presentes</span>
     </div>
   </div>
@@ -633,6 +759,9 @@ function togglePresence(name,pos){
     S.waitList.push(id);
     // Acumula em allPresent (nunca remove — para a súmula)
     if(!S.allPresent.find(p=>p.name===name))S.allPresent.push(newP);
+    // Salvar presença no Supabase
+    const rE = (window.ROSTER||ROSTER).find(r=>r.name===name);
+    if(rE && rE.id_db) _salvarPresenca(rE.id_db).catch(()=>{});
     if(!S.stats[name])S.stats[name]={wins:0,games:0};
     tryFormTeams();
   }
@@ -849,6 +978,9 @@ function declareWinner(winner){
     winner==='blue'?'🔵 Azul venceu ('+S.scoreBlue+'×'+S.scoreYellow+')':
     '🟡 Amarelo venceu ('+S.scoreBlue+'×'+S.scoreYellow+')';
   S.history.push({game:S.gameCount,ts,result:res,blue:nB,yellow:nY});
+  // Salvar partida no Supabase
+  const _resCode = winner==='blue'?'a':winner==='yellow'?'b':'empate';
+  _salvarPartida(S.gameCount, S.teamBlue, S.teamYellow, S.scoreBlue, S.scoreYellow, _resCode).catch(()=>{});
 
   // EMPATE — só disponível quando isNewGameContext
   if(winner==='draw'){
