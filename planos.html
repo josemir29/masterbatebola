@@ -172,24 +172,26 @@ const SUPABASE_KEY = 'sb_publishable_FSx4e9Os478sCRS7x2SCFA_dzqS1WUe'
 const { createClient } = supabase
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-// Verificar se já tem sessão
+// ── Inicialização ──────────────────────────────────────
 sb.auth.getSession().then(({ data }) => {
-  if (!data.session) window.location.href = 'auth.html'
+  if (!data.session) { window.location.href = 'auth.html'; return }
+  // Verificar contexto de origem
+  _verificarContexto()
 })
 
-// Verificar se veio de uma feature bloqueada
-const params = new URLSearchParams(window.location.search)
-const feature = params.get('feature')
-if (feature) {
+function _verificarContexto() {
+  // Se veio de feature bloqueada, mostrar mensagem contextual
+  const params = new URLSearchParams(window.location.search)
+  const feature = params.get('feature')
   const nomes = {
     'dashboard': 'Dashboard na TV',
     'sumula': 'Súmula PNG',
     'cores': 'Cores e logo do clube',
-    'roster': 'Roster ilimitado'
+    'roster': 'Roster ilimitado (acima de 12 jogadores)'
   }
-  const el = document.querySelector('.text-slate-400.text-base')
-  if (el && nomes[feature]) {
-    el.innerHTML = `Para usar <strong class="text-brand-500">${nomes[feature]}</strong>, assine o plano Associação.`
+  if (feature && nomes[feature]) {
+    const el = document.querySelector('p.text-slate-400.text-base')
+    if (el) el.innerHTML = `Para usar <strong class="text-brand-500">${nomes[feature]}</strong>, assine o plano Associação.`
   }
 }
 
@@ -197,25 +199,28 @@ async function ativarPlano(plano) {
   const { data: { session } } = await sb.auth.getSession()
   if (!session) { window.location.href = 'auth.html'; return }
 
-  if (plano === 'free') {
-    // Salvar plano free no banco e ir pro app
-    document.getElementById('loading').classList.add('show')
-    await sb.from('grupos')
-      .update({ plano: 'free' })
-      .eq('owner_id', session.user.id)
-    window.location.href = 'app.html'
-    return
-  }
+  document.getElementById('loading').classList.add('show')
 
-  if (plano === 'associacao') {
-    // Fase 3: Stripe — por enquanto mostra aviso
-    document.getElementById('loading').classList.add('show')
-    // TODO: redirecionar para Stripe Checkout
-    // Por agora ativa como trial para teste
-    await sb.from('grupos')
-      .update({ plano: 'associacao' })
-      .eq('owner_id', session.user.id)
-    window.location.href = 'app.html'
+  try {
+    // Verificar se já tem grupo criado
+    const { data: grupos } = await sb.from('grupos').select('id').limit(1)
+    const temGrupo = grupos && grupos.length > 0
+
+    if (temGrupo) {
+      // Usuário voltou para trocar de plano — atualiza e vai pro app
+      await sb.from('grupos')
+        .update({ plano: plano })
+        .eq('owner_id', session.user.id)
+      window.location.href = 'app.html'
+    } else {
+      // Novo usuário — salva plano escolhido na sessão e vai para onboarding
+      sessionStorage.setItem('plano_escolhido', plano)
+      window.location.href = 'onboarding.html'
+    }
+  } catch(e) {
+    console.error(e)
+    document.getElementById('loading').classList.remove('show')
+    alert('Erro ao processar. Tente novamente.')
   }
 }
 

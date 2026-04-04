@@ -202,8 +202,13 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY)
 let currentPage = 0
 let logoFile = null
 
-sb.auth.getSession().then(({ data }) => {
-  if (!data.session) window.location.href = 'auth.html'
+sb.auth.getSession().then(async ({ data }) => {
+  if (!data.session) { window.location.href = 'auth.html'; return }
+  // Se já tem grupo, vai pro app direto
+  const { data: grupos } = await sb.from('grupos').select('id').limit(1)
+  if (grupos && grupos.length > 0) { window.location.href = 'app.html'; return }
+  // Se não tem plano na sessão, volta para planos
+  if (!sessionStorage.getItem('plano_escolhido')) { window.location.href = 'planos.html'; return }
 })
 
 function irPara(n) {
@@ -282,9 +287,13 @@ async function salvarGrupo(semLogo) {
     }
   }
 
+  // Recuperar plano escolhido na tela de planos
+  const planoEscolhido = sessionStorage.getItem('plano_escolhido') || 'free'
+
   const { error } = await sb.from('grupos').insert({
     owner_id: session.user.id,
-    nome, slug, plano: 'free',
+    nome, slug,
+    plano: planoEscolhido,
     cor_time_a: corA, cor_time_b: corB,
     nome_time_a: nomeA, nome_time_b: nomeB,
     limiar_saida_dupla: limiar,
@@ -295,7 +304,8 @@ async function salvarGrupo(semLogo) {
     mostrarMsg('error', 'Erro ao salvar: ' + error.message)
     btn.disabled = false; btn.textContent = '🏀 Criar meu grupo'
   } else {
-    window.location.href = 'planos.html'
+    sessionStorage.removeItem('plano_escolhido')
+    window.location.href = 'app.html'
   }
 }
 
