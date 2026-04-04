@@ -153,8 +153,17 @@ sb.auth.onAuthStateChange((event, session) => {
 })
 
 async function redirecionarAposLogin() {
-  const { data } = await sb.from('grupos').select('id').limit(1)
-  window.location.href = (data && data.length > 0) ? 'app.html' : 'onboarding.html'
+  const { data: grupos } = await sb.from('grupos').select('id,plano').limit(1)
+  if (!grupos || grupos.length === 0) {
+    // Novo usuário: escolhe plano primeiro
+    window.location.href = 'planos.html'
+  } else if (!grupos[0].plano || grupos[0].plano === '') {
+    // Tem grupo mas sem plano definido: vai para planos
+    window.location.href = 'planos.html'
+  } else {
+    // Já tem grupo e plano: vai direto pro app
+    window.location.href = 'app.html'
+  }
 }
 
 function setTab(tab) {
@@ -209,7 +218,7 @@ async function fazerCadastro() {
 async function loginGoogle() {
   await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + '/masterbatebola/onboarding.html' }
+    options: { redirectTo: window.location.origin + '/onboarding.html' }
   })
 }
 </script>
