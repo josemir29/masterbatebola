@@ -379,52 +379,7 @@ async function fazerLogout(){
   window.location.href = 'auth.html'
 }
 </script>
-<script>
-// ── Auth Guard + Feature Gate ─────────────────────────
-const _SB_URL = 'https://cfcdwyxciflddccdxokw.supabase.co'
-const _SB_KEY = 'sb_publishable_FSx4e9Os478sCRS7x2SCFA_dzqS1WUe'
-const { createClient } = supabase
-const _sb = createClient(_SB_URL, _SB_KEY)
 
-document.documentElement.style.visibility = 'hidden'
-
-_sb.auth.getSession().then(async ({ data }) => {
-  if (!data.session) { window.location.href = 'auth.html'; return }
-
-  const { data: grupos } = await _sb.from('grupos').select('*').limit(1)
-  if (!grupos || grupos.length === 0) {
-    // Sem grupo: ver se tem plano na sessão
-    if (sessionStorage.getItem('plano_escolhido')) {
-      window.location.href = 'onboarding.html'
-    } else {
-      window.location.href = 'planos.html'
-    }
-    return
-  }
-
-  window._grupo  = grupos[0]
-  window._plano  = grupos[0].plano || 'free'
-  window._limiarSaidaDupla = grupos[0].limiar_saida_dupla || 17
-  window._maxJogadores = (window._plano === 'free') ? 12 : Infinity
-
-  document.documentElement.style.visibility = 'visible'
-  _aplicarGrupo()
-})
-
-// Aplica identidade visual do grupo
-function _aplicarGrupo() {
-  const g = window._grupo; if (!g) return
-  const h1 = document.querySelector('.header-text h1')
-  if (h1) h1.textContent = g.nome + ' · Bate-bola'
-}
-
-// Feature gate — bloqueia features premium no plano free
-function _checkFeature(feature) {
-  if (window._plano && window._plano !== 'free') return true
-  window.location.href = 'planos.html?feature=' + feature
-  return false
-}
-</script>
 </head>
 <body>
 <div class="app">
@@ -1104,6 +1059,9 @@ function updateTimerDisplay(){
 function startTimer(){
   if(S.timerSecs===0){S.timerSecs=getTimerDuration();S.timerDuration=S.timerSecs;}
   if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
+  // Travar snapshot ao iniciar — garante que o número de presentes
+  // é capturado no início da partida e não muda se alguém for embora
+  lockSnapshot();
   S.timerRunning=true; S.warnedAt2=false;
   const bs=document.getElementById('btn-start'),bp=document.getElementById('btn-pause');
   if(bs)bs.disabled=true; if(bp)bp.disabled=false;
